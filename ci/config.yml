@@ -1,7 +1,7 @@
 global:
   qsname: quickstart-nginx-plus
   owner: quickstart-eng@amazon.com
-  marketplace-ami: false
+  marketplace-ami: true
   reporting: true
   regions:
     - ap-northeast-1
@@ -18,8 +18,5 @@ global:
  
 tests:
   quickstart-nginx-plust1:
-    template_file: quickstart-nginx-plus-example1.template
-    parameter_input: quickstart-nginx-plus-exampleparms1.json
-  quickstart-nginx-plust2:
-    template_file: quickstart-nginx-plus-example2.template
-    parameter_input: quickstart-nginx-plus-exampleparms2.json
+    template_file: quickstart-nginx-plus.template
+    parameter_input: quickstart-nginx-plus.json
