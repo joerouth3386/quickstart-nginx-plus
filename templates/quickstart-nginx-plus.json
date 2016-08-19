@@ -8,6 +8,14 @@
     "ParameterValue": "10.0.0.0/16"
   },
   {
+    "ParameterKey": "RemoteAccessCIDR",
+    "ParameterValue": "0.0.0.0/0"
+  },
+  {
+    "ParameterKey": "BastionHostInstanceType",
+    "ParameterValue": "t2.micro"
+  }
+  {
     "ParameterKey": "NGINXInstanceType",
     "ParameterValue": "t2.micro"
   },

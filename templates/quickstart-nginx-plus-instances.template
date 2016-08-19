@@ -26,6 +26,26 @@
 			"Description": "VPC ID",
 			"Type": "AWS::EC2::VPC::Id"
 		},
+		"RemoteAccessCIDR": {
+			"Description": "IP CIDR from where you could SSH into the NGINX Plus instances via the Bastion Host",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"Default": "0.0.0.0/0",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid CIDR range of the form x.x.x.x/x."
+		},
+		"BastionHostInstanceType": {
+			"Description": "Amazon EC2 instance type for the Bastion Host.",
+			"Type": "String",
+			"Default": "t2.micro",
+			"AllowedValues": [
+				"t2.micro",
+				"t2.small",
+				"t2.medium",
+				"t2.large"
+			]
+		},
 		"NGINXWebApp1IP": {
 			"Description": "IP for NGINXWebApp1",
 			"Type": "String",
@@ -55,40 +75,78 @@
 		}
 	},
 	"Mappings": {
-		"AmazonLinux": {
-			"us-east-1": {
-				"HVM64": "ami-ff849e95"
-			},
-			"us-west-1": {
-				"HVM64": "ami-04eb1b64"
-			},
-			"us-west-2": {
-				"HVM64": "ami-04eb1b64"
-			},
-			"eu-west-1": {
-				"HVM64": "ami-a1f876d2"
-			},
-			"eu-central-1": {
-				"HVM64": "ami-9d7a99f2"
-			},
+		"AWSAMIRegionMap": {
 			"ap-northeast-1": {
-				"HVM64": "ami-79baa317"
+				"AMZNLINUX": "ami-374db956",
+				"NGINXPLUSAMZNLINUX": "ami-79baa317"
 			},
 			"ap-northeast-2": {
-				"HVM64": "ami-6325ed0d"
+				"AMZNLINUX": "ami-2b408b45",
+				"NGINXPLUSAMZNLINUX": "ami-6325ed0d"
+			},
+			"ap-south-1": {
+				"AMZNLINUX": "ami-ffbdd790",
+				"NGINXPLUSAMZNLINUX": "ami-e2b9d38d"
 			},
 			"ap-southeast-1": {
-				"HVM64": "ami-8b7bafe8"
+				"AMZNLINUX": "ami-a59b49c6",
+				"NGINXPLUSAMZNLINUX": "ami-8b7bafe8"
 			},
 			"ap-southeast-2": {
-				"HVM64": "ami-aefed3cd"
+				"AMZNLINUX": "ami-dc361ebf",
+				"NGINXPLUSAMZNLINUX": "ami-aefed3cd"
+			},
+			"eu-central-1": {
+				"AMZNLINUX": "ami-ea26ce85",
+				"NGINXPLUSAMZNLINUX": "ami-9d7a99f2"
+			},
+			"eu-west-1": {
+				"AMZNLINUX": "ami-f9dd458a",
+				"NGINXPLUSAMZNLINUX": "ami-a1f876d2"
 			},
 			"sa-east-1": {
-				"HVM64": "ami-5237b93e"
+				"AMZNLINUX": "ami-6dd04501",
+				"NGINXPLUSAMZNLINUX": "ami-5237b93e"
+			},
+			"us-east-1": {
+				"AMZNLINUX": "ami-6869aa05",
+				"NGINXPLUSAMZNLINUX": "ami-ff849e95"
+			},
+			"us-west-1": {
+				"AMZNLINUX": "ami-31490d51",
+				"NGINXPLUSAMZNLINUX": "ami-04eb1b64"
+			},
+			"us-west-2": {
+				"AMZNLINUX": "ami-7172b611",
+				"NGINXPLUSAMZNLINUX": "ami-04eb1b64"
 			}
 		}
 	},
 	"Resources": {
+		"BastionHostSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enables SSH access to the NGINX Plus Instances.",
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"SecurityGroupIngress": [{
+					"IpProtocol": "tcp",
+					"FromPort": "22",
+					"ToPort": "22",
+					"CidrIp": {
+						"Ref": "RemoteAccessCIDR"
+					}
+				}],
+				"Tags": [{
+					"Key": "Name",
+					"Value": "NGINXBastionHostSecurityGroup"
+				}, {
+					"Key": "Environment",
+					"Value": "Test"
+				}]
+			}
+		},
 		"NGINXELBSecurityGroup": {
 			"Type": "AWS::EC2::SecurityGroup",
 			"Properties": {
@@ -128,7 +186,12 @@
 						"IpProtocol": "tcp",
 						"FromPort": "22",
 						"ToPort": "22",
-						"CidrIp": "0.0.0.0/0"
+						"SourceSecurityGroupId": {
+							"Fn::GetAtt": [
+								"BastionHostSecurityGroup",
+								"GroupId"
+							]
+						}
 					}, {
 						"IpProtocol": "tcp",
 						"FromPort": "80",
@@ -163,6 +226,55 @@
 					"Key": "Environment",
 					"Value": "Test"
 				}]
+			}
+		},
+		"BastionHost": {
+			"Type": "AWS::EC2::Instance",
+			"Properties": {
+				"ImageId": {
+					"Fn::FindInMap": [
+						"AWSAMIRegionMap", {
+							"Ref": "AWS::Region"
+						},
+						"AMZNLINUX"
+					]
+				},
+				"InstanceType": {
+					"Ref": "BastionHostInstanceType"
+				},
+				"NetworkInterfaces": [{
+					"DeleteOnTermination": "true",
+					"DeviceIndex": 0,
+					"SubnetId": {
+						"Ref": "WebApp1SubnetId"
+					},
+					"GroupSet": [{
+						"Ref": "BastionHostSecurityGroup"
+					}]
+				}],
+
+				"Tags": [{
+					"Key": "Name",
+					"Value": "NGINX BastionHost"
+				}, {
+					"Key": "Environment",
+					"Value": "Test"
+				}],
+				"KeyName": {
+					"Ref": "KeyPairName"
+				},
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"", [
+								"#!/bin/bash -xe\n",
+								"\n",
+								"yum update -y",
+								"\n"
+							]
+						]
+					}
+				}
 			}
 		},
 		"NGINXWebApp1": {
@@ -301,10 +413,10 @@
 			"Properties": {
 				"ImageId": {
 					"Fn::FindInMap": [
-						"AmazonLinux", {
+						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"HVM64"
+						"NGINXPLUSAMZNLINUX"
 					]
 				},
 				"InstanceType": {
@@ -497,10 +609,10 @@
 			"Properties": {
 				"ImageId": {
 					"Fn::FindInMap": [
-						"AmazonLinux", {
+						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"HVM64"
+						"NGINXPLUSAMZNLINUX"
 					]
 				},
 				"InstanceType": {
@@ -609,15 +721,15 @@
 					"Timeout": "5"
 				},
 				"LBCookieStickinessPolicy": [{
-					"PolicyName" : "NGINXStatusHealthPagePolicy",
-					"CookieExpirationPeriod": "300"}],
+					"PolicyName": "NGINXStatusHealthPagePolicy",
+					"CookieExpirationPeriod": "300"
+				}],
 				"LoadBalancerName": "NGINXELB",
 				"Listeners": [{
 					"LoadBalancerPort": "80",
 					"InstancePort": "80",
 					"Protocol": "HTTP"
-				},
-				{
+				}, {
 					"LoadBalancerPort": "8080",
 					"InstancePort": "8080",
 					"Protocol": "HTTP",
@@ -758,10 +870,10 @@
 				},
 				"ImageId": {
 					"Fn::FindInMap": [
-						"AmazonLinux", {
+						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"HVM64"
+						"NGINXPLUSAMZNLINUX"
 					]
 				},
 				"InstanceType": {
@@ -993,6 +1105,15 @@
 				]
 			},
 			"Description": "Public DNS Name for the NGINXWebApp2 Server"
+		},
+		"BastionHostDnsName": {
+			"Value": {
+				"Fn::GetAtt": [
+					"BastionHost",
+					"PublicDnsName"
+				]
+			},
+			"Description": "Public DNS Name for the BastionHost Server"
 		}
 	}
 }
