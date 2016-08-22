@@ -78,47 +78,47 @@
 		"AWSAMIRegionMap": {
 			"ap-northeast-1": {
 				"AMZNLINUX": "ami-374db956",
-				"NGINXPLUSAMZNLINUX": "ami-79baa317"
+				"NGINXPLUSAMZNLINUXHVM": "ami-79baa317"
 			},
 			"ap-northeast-2": {
 				"AMZNLINUX": "ami-2b408b45",
-				"NGINXPLUSAMZNLINUX": "ami-6325ed0d"
+				"NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
 			},
 			"ap-south-1": {
 				"AMZNLINUX": "ami-ffbdd790",
-				"NGINXPLUSAMZNLINUX": "ami-e2b9d38d"
+				"NGINXPLUSAMZNLINUXHVM": "ami-e2b9d38d"
 			},
 			"ap-southeast-1": {
 				"AMZNLINUX": "ami-a59b49c6",
-				"NGINXPLUSAMZNLINUX": "ami-8b7bafe8"
+				"NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
 			},
 			"ap-southeast-2": {
 				"AMZNLINUX": "ami-dc361ebf",
-				"NGINXPLUSAMZNLINUX": "ami-aefed3cd"
+				"NGINXPLUSAMZNLINUXHVM": "ami-aefed3cd"
 			},
 			"eu-central-1": {
 				"AMZNLINUX": "ami-ea26ce85",
-				"NGINXPLUSAMZNLINUX": "ami-9d7a99f2"
+				"NGINXPLUSAMZNLINUXHVM": "ami-9d7a99f2"
 			},
 			"eu-west-1": {
 				"AMZNLINUX": "ami-f9dd458a",
-				"NGINXPLUSAMZNLINUX": "ami-a1f876d2"
+				"NGINXPLUSAMZNLINUXHVM": "ami-a1f876d2"
 			},
 			"sa-east-1": {
 				"AMZNLINUX": "ami-6dd04501",
-				"NGINXPLUSAMZNLINUX": "ami-5237b93e"
+				"NGINXPLUSAMZNLINUXHVM": "ami-5237b93e"
 			},
 			"us-east-1": {
 				"AMZNLINUX": "ami-6869aa05",
-				"NGINXPLUSAMZNLINUX": "ami-ff849e95"
+				"NGINXPLUSAMZNLINUXHVM": "ami-ff849e95"
 			},
 			"us-west-1": {
 				"AMZNLINUX": "ami-31490d51",
-				"NGINXPLUSAMZNLINUX": "ami-04eb1b64"
+				"NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
 			},
 			"us-west-2": {
 				"AMZNLINUX": "ami-7172b611",
-				"NGINXPLUSAMZNLINUX": "ami-04eb1b64"
+				"NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
 			}
 		}
 	},
@@ -416,7 +416,7 @@
 						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"NGINXPLUSAMZNLINUX"
+						"NGINXPLUSAMZNLINUXHVM"
 					]
 				},
 				"InstanceType": {
@@ -612,7 +612,7 @@
 						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"NGINXPLUSAMZNLINUX"
+						"NGINXPLUSAMZNLINUXHVM"
 					]
 				},
 				"InstanceType": {
@@ -873,7 +873,7 @@
 						"AWSAMIRegionMap", {
 							"Ref": "AWS::Region"
 						},
-						"NGINXPLUSAMZNLINUX"
+						"NGINXPLUSAMZNLINUXHVM"
 					]
 				},
 				"InstanceType": {
