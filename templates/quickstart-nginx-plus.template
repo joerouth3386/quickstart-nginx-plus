@@ -1,6 +1,6 @@
 {
 	"AWSTemplateFormatVersion": "2010-09-09",
-	"Description": "(0020) - Step 1 of 3: This template deploys the AWS NGINX Quick Start. ***NOTE*** You must subscribe to the NGINX Plus - Amazon Linux AMI from the AWS Marketplace before you launch this template. See the deployment guide at http://aws.amazon.com/quickstart for details. This template creates Amazon EC2 instances and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
+	"Description": "Step 1 of 3: This template deploys the AWS NGINX Quick Start. ***NOTE*** You must subscribe to the NGINX Plus - Amazon Linux AMI from the AWS Marketplace before you launch this template. See the deployment guide at http://aws.amazon.com/quickstart for details. This template creates Amazon EC2 instances and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
 	"Parameters": {
 		"KeyPairName": {
 			"Description": "Public/private key pair",
