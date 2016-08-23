@@ -1,11 +1,11 @@
 global:
-  qsname: quickstart-nginx-plus
-  owner: quickstart-eng@amazon.com
   marketplace-ami: true
-  reporting: true
+  owner: puccio@amazon.com
+  qsname: quickstart-nginx-plus
   regions:
     - ap-northeast-1
     - ap-northeast-2
+    - ap-south-1
     - ap-southeast-1
     - ap-southeast-2
     - eu-central-1
@@ -14,9 +14,8 @@ global:
     - us-east-1
     - us-west-1
     - us-west-2
-  cis3bucket:  s3://quickstart-ci-bucket
- 
+  reporting: true
 tests:
-  quickstart-nginx-plust1:
-    template_file: quickstart-nginx-plus.template
+  master:
     parameter_input: quickstart-nginx-plus.json
+    template_file: quickstart-nginx-plus.template
