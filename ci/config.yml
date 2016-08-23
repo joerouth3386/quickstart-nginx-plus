@@ -17,5 +17,5 @@ global:
   reporting: true
 tests:
   master:
-    parameter_input: quickstart-nginx-plus.json
-    template_file: quickstart-nginx-plus.template
+    parameter_input: nginx-plus-master.json
+    template_file: nginx-plus-master.template
