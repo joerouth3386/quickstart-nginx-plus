@@ -15,7 +15,7 @@
                         "PrivateSubnet2CIDR",
                         "PublicSubnet1CIDR",
                         "PublicSubnet2CIDR",
-                        "RDGWCIDR"
+                        "BastionAccessCIDR"
                     ]
                 },
                 {
