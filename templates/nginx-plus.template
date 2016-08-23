@@ -1089,19 +1089,14 @@
                     "Protocol": "HTTP",
                     "PolicyNames": ["NGINXStatusHealthPagePolicy"]
                 }],
-                "Subnets": {
-                    "Fn::Join": [
-                        ",",
-                        [
-                            {
-                                "Ref": "PublicSubnet1ID"
-                            },
-                            {
-                                "Ref": "PublicSubnet2ID"
-                            }
-                        ]
-                    ]
-                },
+                "Subnets": [
+                    {
+                        "Ref": "PublicSubnet1ID"
+                    },
+                    {
+                        "Ref": "PublicSubnet2ID"
+                    }
+                ],
                 "Scheme": "internet-facing",
 
                 "SecurityGroups": [{
@@ -1380,19 +1375,14 @@
                 "DesiredCapacity": "2",
                 "HealthCheckGracePeriod": "300",
                 "HealthCheckType": "EC2",
-                "VPCZoneIdentifier": {
-                    "Fn::Join": [
-                        ",",
-                        [
-                            {
-                                "Ref": "PublicSubnet1ID"
-                            },
-                            {
-                                "Ref": "PublicSubnet2ID"
-                            }
-                        ]
-                    ]
-                },
+                "VPCZoneIdentifier": [
+                    {
+                        "Ref": "PrivateSubnet1ID"
+                    },
+                    {
+                        "Ref": "PrivateSubnet2ID"
+                    }
+                ],
                 "LaunchConfigurationName": {
                     "Ref": "NGINXLaunchConfiguration"
                 },
