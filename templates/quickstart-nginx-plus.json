@@ -1,38 +1,38 @@
 [
-  {
-    "ParameterKey": "KeyPairName",
-    "ParameterValue": "cikey"
-  }, 
-  {
-    "ParameterKey": "VPCCIDR",
-    "ParameterValue": "10.0.0.0/16"
-  },
-  {
-    "ParameterKey": "RemoteAccessCIDR",
-    "ParameterValue": "0.0.0.0/0"
-  },
-  {
-    "ParameterKey": "BastionHostInstanceType",
-    "ParameterValue": "t2.micro"
-  }
-  {
-    "ParameterKey": "NGINXInstanceType",
-    "ParameterValue": "t2.micro"
-  },
-  {
-    "ParameterKey": "PublicSubnet1CIDR",
-    "ParameterValue": "10.0.128.0/20"
-  },
-  {
-    "ParameterKey": "PublicSubnet2CIDR",
-    "ParameterValue": "10.0.144.0/20"
-  },
-  {
-    "ParameterKey": "NGINXWebApp1IP",
-    "ParameterValue": "10.0.128.10"
-  },
-  {
-    "ParameterKey": "NGINXWebApp2IP",
-    "ParameterValue": "10.0.144.10"
-  }
+    {
+        "ParameterKey": "BastionHostInstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "KeyPairName",
+        "ParameterValue": "cikey"
+    },
+    {
+        "ParameterKey": "NGINXInstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "NGINXWebApp1IP",
+        "ParameterValue": "10.0.128.10"
+    },
+    {
+        "ParameterKey": "NGINXWebApp2IP",
+        "ParameterValue": "10.0.144.10"
+    },
+    {
+        "ParameterKey": "PublicSubnet1CIDR",
+        "ParameterValue": "10.0.128.0/20"
+    },
+    {
+        "ParameterKey": "PublicSubnet2CIDR",
+        "ParameterValue": "10.0.144.0/20"
+    },
+    {
+        "ParameterKey": "RemoteAccessCIDR",
+        "ParameterValue": "0.0.0.0/0"
+    },
+    {
+        "ParameterKey": "VPCCIDR",
+        "ParameterValue": "10.0.0.0/16"
+    }
 ]
