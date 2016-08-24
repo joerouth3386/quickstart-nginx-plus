@@ -125,10 +125,6 @@
                 "AMZNLINUX": "ami-2b408b45",
                 "NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
             },
-            "ap-south-1": {
-                "AMZNLINUX": "ami-ffbdd790",
-                "NGINXPLUSAMZNLINUXHVM": "ami-e2b9d38d"
-            },
             "ap-southeast-1": {
                 "AMZNLINUX": "ami-a59b49c6",
                 "NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
