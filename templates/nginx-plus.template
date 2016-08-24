@@ -234,7 +234,7 @@
                     "Value": "NGINXBastionHostSecurityGroup"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }]
             }
         },
@@ -262,7 +262,7 @@
                     "Value": "NGINXELBSecurityGroup"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }]
             }
         },
@@ -351,7 +351,7 @@
                     "Value": "NGINXInstancesSecurityGroup"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }]
             }
         },
@@ -384,7 +384,7 @@
                     "Value": "NGINX BastionHost"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }],
                 "KeyName": {
                     "Ref": "KeyPairName"
@@ -701,7 +701,7 @@
                     "Value": "NGINXWebApp1"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }],
                 "KeyName": {
                     "Ref": "KeyPairName"
@@ -1029,7 +1029,7 @@
                     "Value": "NGINXWebApp2"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }],
                 "KeyName": {
                     "Ref": "KeyPairName"
@@ -1057,46 +1057,6 @@
                         ]
                     }
                 }
-            }
-        },
-        "IAMRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [{
-                        "Effect": "Allow",
-                        "Principal": {
-                            "Service": ["ec2.amazonaws.com"]
-                        },
-                        "Action": ["sts:AssumeRole"]
-                    }]
-                },
-                "Path": "/",
-                "Policies": [{
-                    "PolicyName": "NGINXQuickStartIAMRole",
-                    "PolicyDocument": {
-                        "Version": "2012-10-17",
-                        "Statement": [{
-                            "Effect": "Allow",
-                            "Action": [
-                                "cloudformation:DescribeStackResources"
-                            ],
-                            "Resource": [
-                                "*"
-                            ]
-                        }]
-                    }
-                }]
-            }
-        },
-        "IAMInstanceProfile": {
-            "Type": "AWS::IAM::InstanceProfile",
-            "Properties": {
-                "Path": "/",
-                "Roles": [{
-                    "Ref": "IAMRole"
-                }]
             }
         },
         "NGINXELB": {
@@ -1143,7 +1103,7 @@
                     "Value": "NGINXELB"
                 }, {
                     "Key": "Environment",
-                    "Value": "Test"
+                    "Value": "AWS Quick Start"
                 }]
             }
         },
@@ -1347,9 +1307,6 @@
             },
             "Properties": {
                 "AssociatePublicIpAddress": "false",
-                "IamInstanceProfile": {
-                    "Ref": "IAMInstanceProfile"
-                },
                 "ImageId": {
                     "Fn::FindInMap": [
                         "AWSAMIRegionMap", {
@@ -1407,7 +1364,7 @@
                 },
                 "Cooldown": "300",
                 "MaxSize": "2",
-                "MinSize": "1",
+                "MinSize": "2",
                 "DesiredCapacity": "2",
                 "HealthCheckGracePeriod": "300",
                 "HealthCheckType": "EC2",
@@ -1431,14 +1388,14 @@
                     "PropagateAtLaunch": true
                 }, {
                     "Key": "Environment",
-                    "Value": "Test",
+                    "Value": "AWS Quick Start",
                     "PropagateAtLaunch": true
                 }]
             },
             "CreationPolicy": {
                 "ResourceSignal": {
-                    "Count": "1",
-                    "Timeout": "PT15M"
+                    "Count": "2",
+                    "Timeout": "PT30M"
                 }
             }
         },
