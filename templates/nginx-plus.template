@@ -1346,7 +1346,7 @@
                 }
             },
             "Properties": {
-                "AssociatePublicIpAddress": "true",
+                "AssociatePublicIpAddress": "false",
                 "IamInstanceProfile": {
                     "Ref": "IAMInstanceProfile"
                 },
@@ -1574,24 +1574,6 @@
                 ]
             },
             "Description": "Public DNS Name for the NGINXELB"
-        },
-        "NGINXWebApp1DNSName": {
-            "Value": {
-                "Fn::GetAtt": [
-                    "NGINXWebApp1",
-                    "PublicDnsName"
-                ]
-            },
-            "Description": "Public DNS Name for the NGINXWebApp1 Server"
-        },
-        "NGINXWebApp2DNSName": {
-            "Value": {
-                "Fn::GetAtt": [
-                    "NGINXWebApp2",
-                    "PublicDnsName"
-                ]
-            },
-            "Description": "Public DNS Name for the NGINXWebApp2 Server"
         },
         "BastionHostDNSName": {
             "Value": {
