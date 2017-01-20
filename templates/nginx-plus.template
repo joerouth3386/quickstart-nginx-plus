@@ -115,47 +115,47 @@
     "Mappings": {
         "AWSAMIRegionMap": {
             "AMI": {
-                "AMZNLINUX": "amzn-ami-hvm-2016.03.3.x86_64-gp2",
+                "AMZNLINUX": "amzn-ami-hvm-2016.09.1.20161221-x86_64-gp2",
                 "NGINXPLUSAMZNLINUXHVM": "nginx-plus-ami-amazon-linux-hvm-v1.1-20160426.x86_64-ebs-53d2479a-ccf6-4126-bd04-05e5c885727f-ami-3aedf750.3"
             },
             "ap-northeast-1": {
-                "AMZNLINUX": "ami-374db956",
+                "AMZNLINUX": "ami-9f0c67f8",
                 "NGINXPLUSAMZNLINUXHVM": "ami-79baa317"
             },
             "ap-northeast-2": {
-                "AMZNLINUX": "ami-2b408b45",
+                "AMZNLINUX": "ami-94bb6dfa",
                 "NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
             },
             "ap-southeast-1": {
-                "AMZNLINUX": "ami-a59b49c6",
+                "AMZNLINUX": "ami-4dd6782e",
                 "NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
             },
             "ap-southeast-2": {
-                "AMZNLINUX": "ami-dc361ebf",
+                "AMZNLINUX": "ami-28cff44b",
                 "NGINXPLUSAMZNLINUXHVM": "ami-aefed3cd"
             },
             "eu-central-1": {
-                "AMZNLINUX": "ami-ea26ce85",
+                "AMZNLINUX": "ami-211ada4e",
                 "NGINXPLUSAMZNLINUXHVM": "ami-9d7a99f2"
             },
             "eu-west-1": {
-                "AMZNLINUX": "ami-f9dd458a",
+                "AMZNLINUX": "ami-c51e3eb6",
                 "NGINXPLUSAMZNLINUXHVM": "ami-a1f876d2"
             },
             "sa-east-1": {
-                "AMZNLINUX": "ami-6dd04501",
+                "AMZNLINUX": "ami-bb40d8d7",
                 "NGINXPLUSAMZNLINUXHVM": "ami-5237b93e"
             },
             "us-east-1": {
-                "AMZNLINUX": "ami-6869aa05",
+                "AMZNLINUX": "ami-9be6f38c",
                 "NGINXPLUSAMZNLINUXHVM": "ami-ff849e95"
             },
             "us-west-1": {
-                "AMZNLINUX": "ami-31490d51",
+                "AMZNLINUX": "ami-b73d6cd7",
                 "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
             },
             "us-west-2": {
-                "AMZNLINUX": "ami-7172b611",
+                "AMZNLINUX": "ami-1e299d7e",
                 "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
             }
         },
