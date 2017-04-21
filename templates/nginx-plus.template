@@ -115,59 +115,59 @@
     "Mappings": {
         "AWSAMIRegionMap": {
             "AMI": {
-                "AMZNLINUXHVM": "amzn-ami-hvm-2017.03.0.20170401-x86_64-gp2",
+                "AMZNLINUXHVM": "amzn-ami-hvm-2017.03.0.20170417-x86_64-gp2",
                 "NGINXPLUSAMZNLINUXHVM": "nginx-plus-ami-amazon-linux-hvm-v1.1-20160426.x86_64-ebs-53d2479a-ccf6-4126-bd04-05e5c885727f-ami-3aedf750.3"
             },
             "ap-northeast-1": {
-                "AMZNLINUXHVM": "ami-859bbfe2",
+                "AMZNLINUXHVM": "ami-923d12f5",
                 "NGINXPLUSAMZNLINUXHVM": "ami-79baa317"
             },
             "ap-northeast-2": {
-                "AMZNLINUXHVM": "ami-8369baed",
+                "AMZNLINUXHVM": "ami-9d15c7f3",
                 "NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
             },
             "ap-southeast-1": {
-                "AMZNLINUXHVM": "ami-a2bc03c1",
+                "AMZNLINUXHVM": "ami-fc5ae39f",
                 "NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
             },
             "ap-southeast-2": {
-                "AMZNLINUXHVM": "ami-8bf2fde8",
+                "AMZNLINUXHVM": "ami-162c2575",
                 "NGINXPLUSAMZNLINUXHVM": "ami-aefed3cd"
             },
             "ca-central-1": {
-                "AMZNLINUXHVM": "ami-8601bce2",
+                "AMZNLINUXHVM": "ami-0bd66a6f",
                 "NGINXPLUSAMZNLINUXHVM": "ami-0853e16c"
             },
             "eu-central-1": {
-                "AMZNLINUXHVM": "ami-5b06d634",
+                "AMZNLINUXHVM": "ami-b968bad6",
                 "NGINXPLUSAMZNLINUXHVM": "ami-9d7a99f2"
             },
             "eu-west-1": {
-                "AMZNLINUXHVM": "ami-e5083683",
+                "AMZNLINUXHVM": "ami-01ccc867",
                 "NGINXPLUSAMZNLINUXHVM": "ami-a1f876d2"
             },
             "eu-west-2": {
-                "AMZNLINUXHVM": "ami-11130775",
+                "AMZNLINUXHVM": "ami-b6daced2",
                 "NGINXPLUSAMZNLINUXHVM": "ami-b3c1cbd7"
             },
             "sa-east-1": {
-                "AMZNLINUXHVM": "ami-a97013c5",
+                "AMZNLINUXHVM": "ami-37cfad5b",
                 "NGINXPLUSAMZNLINUXHVM": "ami-5237b93e"
             },
             "us-east-1": {
-                "AMZNLINUXHVM": "ami-22ce4934",
+                "AMZNLINUXHVM": "ami-c58c1dd3",
                 "NGINXPLUSAMZNLINUXHVM": "ami-ff849e95"
             },
             "us-east-2": {
-                "AMZNLINUXHVM": "ami-7bfcd81e",
+                "AMZNLINUXHVM": "ami-4191b524",
                 "NGINXPLUSAMZNLINUXHVM": "ami-936f34f6"
             },
             "us-west-1": {
-                "AMZNLINUXHVM": "ami-9e247efe",
+                "AMZNLINUXHVM": "ami-7a85a01a",
                 "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
             },
             "us-west-2": {
-                "AMZNLINUXHVM": "ami-8ca83fec",
+                "AMZNLINUXHVM": "ami-4836a428",
                 "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
             }
         },
