@@ -8,7 +8,7 @@
         "ParameterValue": "t2.micro"
     },
     {
-        "ParameterKey": "BastionAccessCIDR",
+        "ParameterKey": "RemoteAccessCIDR",
         "ParameterValue": "0.0.0.0/0"
     },
     {
@@ -18,14 +18,6 @@
     {
         "ParameterKey": "NATInstanceType",
         "ParameterValue": "t2.small"
-    },
-    {
-        "ParameterKey": "NGINX1PrivateIP",
-        "ParameterValue": "10.0.0.21"
-    },
-    {
-        "ParameterKey": "NGINX2PrivateIP",
-        "ParameterValue": "10.0.32.21"
     },
     {
         "ParameterKey": "NGINXInstanceType",

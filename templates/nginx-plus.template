@@ -1,1679 +1,1335 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "This template creates the Amazon EC2 instances and related resources for the NGINX Plus Quick Start. ***NOTE*** You must subscribe to the NGINX Plus - Amazon Linux AMI HVM from the AWS Marketplace before you launch this template. See the deployment guide at http://aws.amazon.com/quickstart for details. This template creates Amazon EC2 instances and related resources. You will be billed for the AWS resources used if you create a stack from this template. QS(5002)",
-    "Parameters": {
-        "AvailabilityZones": {
-            "Description": "VPC availability zones for AutoScaling Instances",
-            "Type": "List<AWS::EC2::AvailabilityZone::Name>"
-        },
-        "BastionAccessCIDR": {
-            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
-            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/x",
-            "Description": "Allowed CIDR Block for external access to the bastion host",
-            "Type": "String"
-        },
-        "BastionHostInstanceType": {
-            "AllowedValues": [
-                "t2.micro",
-                "t2.small",
-                "t2.medium",
-                "t2.large"
-            ],
-            "Default": "t2.micro",
-            "Description": "Amazon EC2 instance type for the Bastion Host.",
-            "Type": "String"
-        },
-        "KeyPairName": {
-            "Description": "Public/private key pair",
-            "Type": "AWS::EC2::KeyPair::KeyName"
-        },
-        "NGINX1PrivateIP": {
-            "Description": "IP for NGINX instance in private subnet 1 in Availability Zone 1",
-            "Type": "String",
-            "Default": "10.0.0.21"
-        },
-        "NGINX2PrivateIP": {
-            "Description": "IP for NGINX instance in private subnet 2 in Availability Zone 2",
-            "Type": "String",
-            "Default": "10.0.32.21"
-        },
-        "NGINXInstanceType": {
-            "AllowedValues": [
-                "t2.micro",
-                "t2.small",
-                "t2.medium",
-                "t2.large"
-            ],
-            "Default": "t2.micro",
-            "Description": "Amazon EC2 instance type for the NGINX Plus load balancing and application instances",
-            "Type": "String"
-        },
-        "PrivateSubnet1ID": {
-            "Description": "ID of the private subnet 1 in Availability Zone 1 (e.g., subnet-a0246dcd)",
-            "Type": "AWS::EC2::Subnet::Id"
-        },
-        "PrivateSubnet2ID": {
-            "Description": "ID of the private subnet 2 in Availability Zone 2 (e.g., subnet-a0246dcd)",
-            "Type": "AWS::EC2::Subnet::Id"
-        },
-        "PublicSubnet1ID": {
-            "Description": "ID of the public subnet 1 in Availability Zone 1 (e.g., subnet-e3246d8e)",
-            "Type": "AWS::EC2::Subnet::Id"
-        },
-        "PublicSubnet2ID": {
-            "Description": "ID of the public subnet 2 in Availability Zone 2 (e.g., subnet-e3246d8e)",
-            "Type": "AWS::EC2::Subnet::Id"
-        },
-        "QSS3BucketName": {
-            "AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
-            "ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Default": "quickstart-reference",
-            "Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
-            "Type": "String"
-        },
-        "QSS3KeyPrefix": {
-            "AllowedPattern": "^[0-9a-zA-Z-]+(/[0-9a-zA-Z-]+)*$",
-            "ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash (/) because they are automatically appended.",
-            "Default": "nginx/plus/latest",
-            "Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash (/) because they are automatically appended.",
-            "Type": "String"
-        },
-        "VPCID": {
-            "Description": "VPC ID",
-            "Type": "AWS::EC2::VPC::Id"
-        },
-        "VPCCIDR": {
-            "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
-            "ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
-            "Default": "10.0.0.0/16",
-            "Description": "CIDR block for the VPC",
-            "Type": "String"
-        }
-    },
-    "Rules": {
-        "SubnetsInVPC": {
-            "Assertions": [
-                {
-                    "Assert": {
-                        "Fn::EachMemberIn": [
-                            {
-                                "Fn::ValueOfAll": [
-                                    "AWS::EC2::Subnet::Id",
-                                    "VpcId"
-                                ]
-                            },
-                            {
-                                "Fn::RefAll": "AWS::EC2::VPC::Id"
-                            }
-                        ]
-                    },
-                    "AssertDescription": "All subnets must in the VPC"
-                }
-            ]
-        }
-    },
-    "Mappings": {
-        "AWSAMIRegionMap": {
-            "AMI": {
-                "AMZNLINUXHVM": "amzn-ami-hvm-2017.03.1.20170617-x86_64-gp2",
-                "NGINXPLUSAMZNLINUXHVM": "nginx-plus-ami-amazon-linux-hvm-v1.1-20160426.x86_64-ebs-53d2479a-ccf6-4126-bd04-05e5c885727f-ami-3aedf750.3"
-            },
-            "ap-northeast-1": {
-                "AMZNLINUXHVM": "ami-bbf2f9dc",
-                "NGINXPLUSAMZNLINUXHVM": "ami-79baa317"
-            },
-            "ap-northeast-2": {
-                "AMZNLINUXHVM": "ami-9bab74f5",
-                "NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
-            },
-            "ap-southeast-1": {
-                "AMZNLINUXHVM": "ami-58d65b3b",
-                "NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
-            },
-            "ap-southeast-2": {
-                "AMZNLINUXHVM": "ami-a18392c2",
-                "NGINXPLUSAMZNLINUXHVM": "ami-aefed3cd"
-            },
-            "ca-central-1": {
-                "AMZNLINUXHVM": "ami-20db6444",
-                "NGINXPLUSAMZNLINUXHVM": "ami-0853e16c"
-            },
-            "eu-central-1": {
-                "AMZNLINUXHVM": "ami-8da700e2",
-                "NGINXPLUSAMZNLINUXHVM": "ami-9d7a99f2"
-            },
-            "eu-west-1": {
-                "AMZNLINUXHVM": "ami-7d50491b",
-                "NGINXPLUSAMZNLINUXHVM": "ami-a1f876d2"
-            },
-            "eu-west-2": {
-                "AMZNLINUXHVM": "ami-704e5814",
-                "NGINXPLUSAMZNLINUXHVM": "ami-b3c1cbd7"
-            },
-            "sa-east-1": {
-                "AMZNLINUXHVM": "ami-1d660d71",
-                "NGINXPLUSAMZNLINUXHVM": "ami-5237b93e"
-            },
-            "us-east-1": {
-                "AMZNLINUXHVM": "ami-643b1972",
-                "NGINXPLUSAMZNLINUXHVM": "ami-ff849e95"
-            },
-            "us-east-2": {
-                "AMZNLINUXHVM": "ami-3883a55d",
-                "NGINXPLUSAMZNLINUXHVM": "ami-936f34f6"
-            },
-            "us-west-1": {
-                "AMZNLINUXHVM": "ami-563a1736",
-                "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
-            },
-            "us-west-2": {
-                "AMZNLINUXHVM": "ami-a07379d9",
-                "NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
-            }
-        },
-        "AWSInfoRegionMap": {
-            "ap-northeast-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "ap-northeast-2": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "ap-southeast-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "ap-southeast-2": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "ca-central-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "eu-central-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "eu-west-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "eu-west-2": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "sa-east-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "us-east-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "us-east-2": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "us-west-1": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            },
-            "us-west-2": {
-                "Partition": "aws",
-                "QuickStartS3URL": "https://s3.amazonaws.com"
-            }
-        }
-    },
-    "Resources": {
-        "BastionHostSecurityGroup": {
-            "Type": "AWS::EC2::SecurityGroup",
-            "Properties": {
-                "GroupDescription": "Enables SSH access to the NGINX Plus Instances.",
-                "VpcId": {
-                    "Ref": "VPCID"
-                },
-                "SecurityGroupIngress": [
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "22",
-                        "ToPort": "22",
-                        "CidrIp": {
-                            "Ref": "BastionAccessCIDR"
-                        }
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXBastionHostSecurityGroup"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ]
-            }
-        },
-        "NGINXELBSecurityGroup": {
-            "Type": "AWS::EC2::SecurityGroup",
-            "Properties": {
-                "GroupDescription": "Enables access to the NGINX ELB",
-                "VpcId": {
-                    "Ref": "VPCID"
-                },
-                "SecurityGroupIngress": [
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "80",
-                        "ToPort": "80",
-                        "CidrIp": "0.0.0.0/0"
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "8080",
-                        "ToPort": "8080",
-                        "CidrIp": "0.0.0.0/0"
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXELBSecurityGroup"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ]
-            }
-        },
-        "NGINXInstancesSecurityGroup": {
-            "Type": "AWS::EC2::SecurityGroup",
-            "Properties": {
-                "GroupDescription": "Enables access to the NGINX Web Server.",
-                "VpcId": {
-                    "Ref": "VPCID"
-                },
-                "SecurityGroupIngress": [
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "22",
-                        "ToPort": "22",
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "BastionHostSecurityGroup",
-                                "GroupId"
-                            ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "80",
-                        "ToPort": "80",
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "BastionHostSecurityGroup",
-                                "GroupId"
-                            ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "8080",
-                        "ToPort": "8080",
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "BastionHostSecurityGroup",
-                                "GroupId"
-                            ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "80",
-                        "ToPort": "80",
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "NGINXELBSecurityGroup",
-                                "GroupId"
-                            ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "8080",
-                        "ToPort": "8080",
-                        "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "NGINXELBSecurityGroup",
-                                "GroupId"
-                            ]
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "8100",
-                        "ToPort": "8100",
-                        "CidrIp": {
-                            "Ref": "VPCCIDR"
-                        }
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": "8200",
-                        "ToPort": "8200",
-                        "CidrIp": {
-                            "Ref": "VPCCIDR"
-                        }
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXInstancesSecurityGroup"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ]
-            }
-        },
-        "BastionHost": {
-            "Type": "AWS::EC2::Instance",
-            "Properties": {
-                "ImageId": {
-                    "Fn::FindInMap": [
-                        "AWSAMIRegionMap",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        "AMZNLINUXHVM"
-                    ]
-                },
-                "InstanceType": {
-                    "Ref": "BastionHostInstanceType"
-                },
-                "NetworkInterfaces": [
-                    {
-                        "DeleteOnTermination": "true",
-                        "DeviceIndex": 0,
-                        "SubnetId": {
-                            "Ref": "PublicSubnet1ID"
-                        },
-                        "GroupSet": [
-                            {
-                                "Ref": "BastionHostSecurityGroup"
-                            }
-                        ]
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINX BastionHost"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ],
-                "KeyName": {
-                    "Ref": "KeyPairName"
-                },
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash -xe\n",
-                                "\n",
-                                "yum update -y",
-                                "\n"
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
-        "NGINXWebApp1": {
-            "Type": "AWS::EC2::Instance",
-            "Metadata": {
-                "AWS::CloudFormation::Init": {
-                    "configSets": {
-                        "bootstrap_install": [
-                            "install_cfn",
-                            "prepare_system",
-                            "configure_nginx"
-                        ]
-                    },
-                    "install_cfn": {
-                        "files": {
-                            "/etc/cfn/cfn-hup.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[main]\n",
-                                            "stack=",
-                                            {
-                                                "Ref": "AWS::StackId"
-                                            },
-                                            "\n",
-                                            "region=",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            },
-                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[cfn-auto-reloader-hook]\n",
-                                            "triggers=post.update\n",
-                                            "path=Resources.NGINXWebApp1.Metadata.AWS::CloudFormation::Init\n",
-                                            "action=/opt/aws/bin/cfn-init -v ",
-                                            "         --stack ",
-                                            {
-                                                "Ref": "AWS::StackName"
-                                            },
-                                            "         --resource NGINXWebApp1 ",
-                                            "         --configsets bootstrap_install ",
-                                            "         --region ",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "cfn-hup": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/cfn/cfn-hup.conf",
-                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "prepare_system": {
-                        "packages": {
-                            "yum": {
-                                "php70": [],
-                                "php70-fpm": []
-                            }
-                        },
-                        "commands": {
-                            "01-mkdir /usr/share/nginx/app1": {
-                                "command": "mkdir /usr/share/nginx/app1"
-                            },
-                            "02-mkdir /usr/share/nginx/php": {
-                                "command": "mkdir /usr/share/nginx/php"
-                            },
-                            "03-create index.html": {
-                                "command": "echo \"WebAPP1 NGINX Quick Start\" > /usr/share/nginx/app1/index.html"
-                            },
-                            "04-mkdir /usr/share/nginx/images": {
-                                "command": "mkdir /usr/share/nginx/images"
-                            }
-                        }
-                    },
-                    "configure_nginx": {
-                        "files": {
-                            "/etc/php-fpm-7.0.d/www.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/www.conf"
-                                        ]
-                                    ]
-                                },
-                                "owner": "nginx",
-                                "group": "nginx"
-                            },
-                            "/etc/php-7.0.ini": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/php-7.0.ini"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/php/landing.php": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/landing.php"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/nginx.png": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/nginx.png"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/favicon.ico": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/favicon.ico"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/etc/nginx/conf.d/app1.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/app1.conf"
-                                        ]
-                                    ]
-                                }
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "php-fpm": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/php-fpm-7.0.d/www.conf"
-                                    ]
-                                },
-                                "nginx": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/nginx/conf.d/app1.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "Properties": {
-                "ImageId": {
-                    "Fn::FindInMap": [
-                        "AWSAMIRegionMap",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        "NGINXPLUSAMZNLINUXHVM"
-                    ]
-                },
-                "InstanceType": {
-                    "Ref": "NGINXInstanceType"
-                },
-                "NetworkInterfaces": [
-                    {
-                        "DeleteOnTermination": "true",
-                        "DeviceIndex": 0,
-                        "SubnetId": {
-                            "Ref": "PrivateSubnet1ID"
-                        },
-                        "PrivateIpAddresses": [
-                            {
-                                "Primary": "true",
-                                "PrivateIpAddress": {
-                                    "Ref": "NGINX1PrivateIP"
-                                }
-                            }
-                        ],
-                        "GroupSet": [
-                            {
-                                "Ref": "NGINXInstancesSecurityGroup"
-                            }
-                        ]
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXWebApp1"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ],
-                "KeyName": {
-                    "Ref": "KeyPairName"
-                },
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash -xe\n",
-                                "hostname nginxwebapp1.example.com",
-                                "\n",
-                                "yum update -y",
-                                "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                " --resource NGINXWebApp1",
-                                " --configsets bootstrap_install ",
-                                " --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n"
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
-        "NGINXWebApp2": {
-            "Type": "AWS::EC2::Instance",
-            "Metadata": {
-                "AWS::CloudFormation::Init": {
-                    "configSets": {
-                        "bootstrap_install": [
-                            "install_cfn",
-                            "prepare_system",
-                            "configure_nginx"
-                        ]
-                    },
-                    "install_cfn": {
-                        "files": {
-                            "/etc/cfn/cfn-hup.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[main]\n",
-                                            "stack=",
-                                            {
-                                                "Ref": "AWS::StackId"
-                                            },
-                                            "\n",
-                                            "region=",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            },
-                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[cfn-auto-reloader-hook]\n",
-                                            "triggers=post.update\n",
-                                            "path=Resources.NGINXWebApp2.Metadata.AWS::CloudFormation::Init\n",
-                                            "action=/opt/aws/bin/cfn-init -v ",
-                                            "         --stack ",
-                                            {
-                                                "Ref": "AWS::StackName"
-                                            },
-                                            "         --resource NGINXWebApp2 ",
-                                            "         --configsets bootstrap_install ",
-                                            "         --region ",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "cfn-hup": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/cfn/cfn-hup.conf",
-                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "prepare_system": {
-                        "packages": {
-                            "yum": {
-                                "php70": [],
-                                "php70-fpm": []
-                            }
-                        },
-                        "commands": {
-                            "01-mkdir /usr/share/nginx/app2": {
-                                "command": "mkdir /usr/share/nginx/app2"
-                            },
-                            "02-mkdir /usr/share/nginx/php": {
-                                "command": "mkdir /usr/share/nginx/php"
-                            },
-                            "03-create index.html": {
-                                "command": "echo \"WebAPP2 NGINX Quick Start\" > /usr/share/nginx/app2/index.html"
-                            },
-                            "04-mkdir /usr/share/nginx/images": {
-                                "command": "mkdir /usr/share/nginx/images"
-                            }
-                        }
-                    },
-                    "configure_nginx": {
-                        "files": {
-                            "/etc/php-fpm-7.0.d/www.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/www.conf"
-                                        ]
-                                    ]
-                                },
-                                "owner": "nginx",
-                                "group": "nginx"
-                            },
-                            "/etc/php-7.0.ini": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/php-7.0.ini"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/php/landing.php": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/landing.php"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/nginx.png": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/nginx.png"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/favicon.ico": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/favicon.ico"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/etc/nginx/conf.d/app2.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/app2.conf"
-                                        ]
-                                    ]
-                                }
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "php-fpm": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/php-fpm-7.0.d/www.conf"
-                                    ]
-                                },
-                                "nginx": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/nginx/conf.d/app2.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "Properties": {
-                "ImageId": {
-                    "Fn::FindInMap": [
-                        "AWSAMIRegionMap",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        "NGINXPLUSAMZNLINUXHVM"
-                    ]
-                },
-                "InstanceType": {
-                    "Ref": "NGINXInstanceType"
-                },
-                "NetworkInterfaces": [
-                    {
-                        "DeleteOnTermination": "true",
-                        "DeviceIndex": 0,
-                        "SubnetId": {
-                            "Ref": "PrivateSubnet2ID"
-                        },
-                        "PrivateIpAddresses": [
-                            {
-                                "Primary": "true",
-                                "PrivateIpAddress": {
-                                    "Ref": "NGINX2PrivateIP"
-                                }
-                            }
-                        ],
-                        "GroupSet": [
-                            {
-                                "Ref": "NGINXInstancesSecurityGroup"
-                            }
-                        ]
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXWebApp2"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ],
-                "KeyName": {
-                    "Ref": "KeyPairName"
-                },
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash -xe\n",
-                                "hostname nginxwebapp2.example.com",
-                                "\n",
-                                "yum update -y",
-                                "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                " --resource NGINXWebApp2",
-                                " --configsets bootstrap_install ",
-                                " --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n"
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
-        "NGINXELB": {
-            "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
-            "Properties": {
-                "CrossZone": "true",
-                "HealthCheck": {
-                    "Target": "HTTP:8080/status.html",
-                    "HealthyThreshold": "10",
-                    "UnhealthyThreshold": "2",
-                    "Interval": "30",
-                    "Timeout": "5"
-                },
-                "LBCookieStickinessPolicy": [
-                    {
-                        "PolicyName": "NGINXStatusHealthPagePolicy",
-                        "CookieExpirationPeriod": "300"
-                    }
-                ],
-                "LoadBalancerName": "NGINXELB",
-                "Listeners": [
-                    {
-                        "LoadBalancerPort": "80",
-                        "InstancePort": "80",
-                        "Protocol": "HTTP"
-                    },
-                    {
-                        "LoadBalancerPort": "8080",
-                        "InstancePort": "8080",
-                        "Protocol": "HTTP",
-                        "PolicyNames": [
-                            "NGINXStatusHealthPagePolicy"
-                        ]
-                    }
-                ],
-                "Subnets": [
-                    {
-                        "Ref": "PublicSubnet1ID"
-                    },
-                    {
-                        "Ref": "PublicSubnet2ID"
-                    }
-                ],
-                "Scheme": "internet-facing",
-                "SecurityGroups": [
-                    {
-                        "Ref": "NGINXELBSecurityGroup"
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINXELB"
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start"
-                    }
-                ]
-            }
-        },
-        "NGINXLaunchConfiguration": {
-            "Type": "AWS::AutoScaling::LaunchConfiguration",
-            "Metadata": {
-                "AWS::CloudFormation::Init": {
-                    "configSets": {
-                        "bootstrap_install": [
-                            "install_cfn",
-                            "prepare_system",
-                            "configure_nginx"
-                        ]
-                    },
-                    "install_cfn": {
-                        "files": {
-                            "/etc/cfn/cfn-hup.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[main]\n",
-                                            "stack=",
-                                            {
-                                                "Ref": "AWS::StackId"
-                                            },
-                                            "\n",
-                                            "region=",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            },
-                            "/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
-                                "content": {
-                                    "Fn::Join": [
-                                        "",
-                                        [
-                                            "[cfn-auto-reloader-hook]\n",
-                                            "triggers=post.update\n",
-                                            "path=Resources.NGINXLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
-                                            "action=/opt/aws/bin/cfn-init -v ",
-                                            "         --stack ",
-                                            {
-                                                "Ref": "AWS::StackName"
-                                            },
-                                            "         --resource NGINXLaunchConfiguration ",
-                                            "         --configsets bootstrap_install ",
-                                            "         --region ",
-                                            {
-                                                "Ref": "AWS::Region"
-                                            },
-                                            "\n"
-                                        ]
-                                    ]
-                                },
-                                "mode": "000400",
-                                "owner": "root",
-                                "group": "root"
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "cfn-hup": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/cfn/cfn-hup.conf",
-                                        "/etc/cfn/hooks.d/cfn-auto-reloader.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    },
-                    "prepare_system": {
-                        "commands": {
-                            "01-mkdir /usr/share/nginx/images": {
-                                "command": "mkdir /usr/share/nginx/images"
-                            }
-                        }
-                    },
-                    "configure_nginx": {
-                        "files": {
-                            "/etc/nginx/conf.d/lb.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/lb.conf"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/etc/nginx/conf.d/status.conf": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/status.conf"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/nginx.png": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/nginx.png"
-                                        ]
-                                    ]
-                                }
-                            },
-                            "/usr/share/nginx/images/favicon.ico": {
-                                "source": {
-                                    "Fn::Join": [
-                                        "/",
-                                        [
-                                            {
-                                                "Fn::FindInMap": [
-                                                    "AWSInfoRegionMap",
-                                                    {
-                                                        "Ref": "AWS::Region"
-                                                    },
-                                                    "QuickStartS3URL"
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "QSS3BucketName"
-                                            },
-                                            {
-                                                "Ref": "QSS3KeyPrefix"
-                                            },
-                                            "scripts/favicon.ico"
-                                        ]
-                                    ]
-                                }
-                            }
-                        },
-                        "commands": {
-                            "01-mv /etc/nginx/conf.d/default.conf": {
-                                "command": "mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.bak"
-                            }
-                        },
-                        "services": {
-                            "sysvinit": {
-                                "nginx": {
-                                    "enabled": "true",
-                                    "ensureRunning": "true",
-                                    "files": [
-                                        "/etc/nginx/conf.d/lb.conf"
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "Properties": {
-                "AssociatePublicIpAddress": "false",
-                "ImageId": {
-                    "Fn::FindInMap": [
-                        "AWSAMIRegionMap",
-                        {
-                            "Ref": "AWS::Region"
-                        },
-                        "NGINXPLUSAMZNLINUXHVM"
-                    ]
-                },
-                "InstanceType": {
-                    "Ref": "NGINXInstanceType"
-                },
-                "KeyName": {
-                    "Ref": "KeyPairName"
-                },
-                "SecurityGroups": [
-                    {
-                        "Ref": "NGINXInstancesSecurityGroup"
-                    }
-                ],
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                "#!/bin/bash -xe\n",
-                                "yum update -y",
-                                "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                " --resource NGINXLaunchConfiguration",
-                                " --configsets bootstrap_install ",
-                                " --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n",
-                                "/opt/aws/bin/cfn-signal -e $? ",
-                                "         --stack ",
-                                {
-                                    "Ref": "AWS::StackName"
-                                },
-                                "         --resource NGINXAutoscaleGroup",
-                                "         --region ",
-                                {
-                                    "Ref": "AWS::Region"
-                                },
-                                "\n"
-                            ]
-                        ]
-                    }
-                }
-            }
-        },
-        "NGINXAutoscaleGroup": {
-            "Type": "AWS::AutoScaling::AutoScalingGroup",
-            "Properties": {
-                "AvailabilityZones": {
-                    "Ref": "AvailabilityZones"
-                },
-                "Cooldown": "300",
-                "MaxSize": "2",
-                "MinSize": "2",
-                "DesiredCapacity": "2",
-                "HealthCheckGracePeriod": "300",
-                "HealthCheckType": "EC2",
-                "VPCZoneIdentifier": [
-                    {
-                        "Ref": "PrivateSubnet1ID"
-                    },
-                    {
-                        "Ref": "PrivateSubnet2ID"
-                    }
-                ],
-                "LaunchConfigurationName": {
-                    "Ref": "NGINXLaunchConfiguration"
-                },
-                "LoadBalancerNames": [
-                    {
-                        "Ref": "NGINXELB"
-                    }
-                ],
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": "NGINX Plus Load Balancer",
-                        "PropagateAtLaunch": true
-                    },
-                    {
-                        "Key": "Environment",
-                        "Value": "AWS Quick Start",
-                        "PropagateAtLaunch": true
-                    }
-                ]
-            },
-            "CreationPolicy": {
-                "ResourceSignal": {
-                    "Count": "2",
-                    "Timeout": "PT30M"
-                }
-            }
-        },
-        "HostedZone": {
-            "Type": "AWS::Route53::HostedZone",
-            "Properties": {
-                "HostedZoneConfig": {
-                    "Comment": "Hosted zone for example.com"
-                },
-                "Name": "example.com",
-                "VPCs": [
-                    {
-                        "VPCId": {
-                            "Ref": "VPCID"
-                        },
-                        "VPCRegion": {
-                            "Ref": "AWS::Region"
-                        }
-                    }
-                ]
-            }
-        },
-        "WebApp1DNSRecord": {
-            "Type": "AWS::Route53::RecordSet",
-            "DependsOn": "HostedZone",
-            "Properties": {
-                "HostedZoneId": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "/hostedzone/",
-                            {
-                                "Ref": "HostedZone"
-                            }
-                        ]
-                    ]
-                },
-                "Name": "nginxwebapp1.example.com",
-                "Type": "A",
-                "TTL": "900",
-                "ResourceRecords": [
-                    {
-                        "Ref": "NGINX1PrivateIP"
-                    }
-                ]
-            }
-        },
-        "WebApp2DNSRecord": {
-            "Type": "AWS::Route53::RecordSet",
-            "DependsOn": "HostedZone",
-            "Properties": {
-                "HostedZoneId": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "/hostedzone/",
-                            {
-                                "Ref": "HostedZone"
-                            }
-                        ]
-                    ]
-                },
-                "Name": "nginxwebapp2.example.com",
-                "Type": "A",
-                "TTL": "900",
-                "ResourceRecords": [
-                    {
-                        "Ref": "NGINX2PrivateIP"
-                    }
-                ]
-            }
-        },
-        "WebApp1CNameDNSRecord": {
-            "Type": "AWS::Route53::RecordSet",
-            "DependsOn": "HostedZone",
-            "Properties": {
-                "HostedZoneId": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "/hostedzone/",
-                            {
-                                "Ref": "HostedZone"
-                            }
-                        ]
-                    ]
-                },
-                "Name": "webapp1.example.com",
-                "Type": "CNAME",
-                "TTL": "900",
-                "ResourceRecords": [
-                    "nginxloadbalancer.example.com"
-                ]
-            }
-        },
-        "WebApp2CNameDNSRecord": {
-            "Type": "AWS::Route53::RecordSet",
-            "DependsOn": "HostedZone",
-            "Properties": {
-                "HostedZoneId": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "/hostedzone/",
-                            {
-                                "Ref": "HostedZone"
-                            }
-                        ]
-                    ]
-                },
-                "Name": "webapp2.example.com",
-                "Type": "CNAME",
-                "TTL": "900",
-                "ResourceRecords": [
-                    "nginxloadbalancer.example.com"
-                ]
-            }
-        },
-        "NGINXELBCNameDNSRecord": {
-            "Type": "AWS::Route53::RecordSet",
-            "DependsOn": "HostedZone",
-            "Properties": {
-                "HostedZoneId": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "/hostedzone/",
-                            {
-                                "Ref": "HostedZone"
-                            }
-                        ]
-                    ]
-                },
-                "Name": "nginxloadbalancer.example.com",
-                "Type": "CNAME",
-                "TTL": "900",
-                "ResourceRecords": [
-                    {
-                        "Fn::GetAtt": [
-                            "NGINXELB",
-                            "DNSName"
-                        ]
-                    }
-                ]
-            }
-        }
-    },
-    "Outputs": {
-        "NGINXELBDNSName": {
-            "Value": {
-                "Fn::GetAtt": [
-                    "NGINXELB",
-                    "DNSName"
-                ]
-            },
-            "Description": "Public DNS Name for the NGINXELB"
-        },
-        "BastionHostDNSName": {
-            "Value": {
-                "Fn::GetAtt": [
-                    "BastionHost",
-                    "PublicDnsName"
-                ]
-            },
-            "Description": "Public DNS Name for the BastionHost Server"
-        }
-    }
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "This template creates the Amazon EC2 instances and related resources for the NGINX Plus Quick Start. ***NOTE*** You must subscribe to the NGINX Plus - Amazon Linux AMI HVM from the AWS Marketplace before you launch this template. See the deployment guide at http://aws.amazon.com/quickstart for details. This template creates Amazon EC2 instances and related resources. You will be billed for the AWS resources used if you create a stack from this template. QS(5002)",
+	"Metadata": {
+		"AWS::CloudFormation::Interface": {
+			"ParameterGroups": [{
+					"Label": {
+						"default": "Network Configuration"
+					},
+					"Parameters": [
+						"AvailabilityZones",
+						"VPCCIDR",
+						"PrivateSubnet1ID",
+						"PrivateSubnet2ID",
+						"PublicSubnet1ID",
+						"PublicSubnet2ID",
+						"RemoteAccessCIDR"
+					]
+				},
+				{
+					"Label": {
+						"default": "Amazon EC2 Configuration"
+					},
+					"Parameters": [
+						"KeyPairName",
+						"BastionSecurityGroupID",
+						"NGINXInstanceType"
+					]
+				},
+				{
+					"Label": {
+						"default": "AWS Quick Start Configuration"
+					},
+					"Parameters": [
+						"QSS3BucketName",
+						"QSS3KeyPrefix"
+					]
+				}
+			],
+			"ParameterLabels": {
+				"AvailabilityZones": {
+					"default": "Availability Zones"
+				},
+				"BastionSecurityGroupID": {
+					"default": "ID of the bastion host security group"
+				},
+				"KeyPairName": {
+					"default": "Key Pair Name"
+				},
+				"NATInstanceType": {
+					"default": "NAT Instance Type"
+				},
+				"NGINXInstanceType": {
+					"default": "NGINX Instance Type"
+				},
+				"PrivateSubnet1ID": {
+					"default": "Private Subnet 1 ID"
+				},
+				"PrivateSubnet2ID": {
+					"default": "Private Subnet 2 ID"
+				},
+				"PublicSubnet1ID": {
+					"default": "Public Subnet 1 ID"
+				},
+				"PublicSubnet2ID": {
+					"default": "Public Subnet 2 ID"
+				},
+				"QSS3BucketName": {
+					"default": "Quick Start S3 Bucket Name"
+				},
+				"QSS3KeyPrefix": {
+					"default": "Quick Start S3 Key Prefix"
+				},
+				"VPCCIDR": {
+					"default": "VPC CIDR"
+				},
+				"RemoteAccessCIDR": {
+					"default": "Allowed Bastion and Dashboard External Access CIDR"
+				}
+			}
+		}
+	},
+	"Parameters": {
+		"AvailabilityZones": {
+			"Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 2 AZs are used for this deployment.",
+			"Type": "List<AWS::EC2::AvailabilityZone::Name>"
+		},
+		"BastionSecurityGroupID": {
+			"Description": "ID of the bastion host security group to enable SSH connections (e.g., sg-7f16e910)",
+			"Type": "AWS::EC2::SecurityGroup::Id"
+		},
+		"KeyPairName": {
+			"Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
+			"Type": "AWS::EC2::KeyPair::KeyName"
+		},
+		"NGINXInstanceType": {
+			"Description": "Amazon EC2 instance type for the NGINX Plus load balancing and application instances",
+			"Type": "String",
+			"Default": "t2.micro",
+			"AllowedValues": [
+				"t2.micro",
+				"t2.small",
+				"t2.medium",
+				"t2.large"
+			]
+		},
+		"PrivateSubnet1ID": {
+			"Description": "ID of the private subnet 1 in Availability Zone 1 (e.g., subnet-a0246dcd)",
+			"Type": "AWS::EC2::Subnet::Id"
+		},
+		"PrivateSubnet2ID": {
+			"Description": "ID of the private subnet 2 in Availability Zone 2 (e.g., subnet-a0246dcd)",
+			"Type": "AWS::EC2::Subnet::Id"
+		},
+		"PublicSubnet1ID": {
+			"Description": "ID of the public subnet 1 in Availability Zone 1 (e.g., subnet-e3246d8e)",
+			"Type": "AWS::EC2::Subnet::Id"
+		},
+		"PublicSubnet2ID": {
+			"Description": "ID of the public subnet 2 in Availability Zone 2 (e.g., subnet-e3246d8e)",
+			"Type": "AWS::EC2::Subnet::Id"
+		},
+		"QSS3BucketName": {
+			"AllowedPattern": "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$",
+			"ConstraintDescription": "Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Default": "quickstart-reference",
+			"Description": "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-).",
+			"Type": "String"
+		},
+		"QSS3KeyPrefix": {
+			"AllowedPattern": "^[0-9a-zA-Z-/]*$",
+			"ConstraintDescription": "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/).",
+			"Default": "nginx/plus/latest/",
+			"Description": "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/). It cannot start or end with forward slash (/) because they are automatically appended.",
+			"Type": "String"
+		},
+		"RemoteAccessCIDR": {
+			"AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/([0-9]|[1-2][0-9]|3[0-2]))$",
+			"ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/x",
+			"Description": "Allowed CIDR block for external SSH access to the bastions and the NGINX Plus Dashboard",
+			"Type": "String"
+		},
+		"VPCID": {
+			"Description": "ID of the VPC (e.g., vpc-0343606e)",
+			"Type": "AWS::EC2::VPC::Id"
+		},
+		"VPCCIDR": {
+			"AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
+			"ConstraintDescription": "CIDR block parameter must be in the form x.x.x.x/16-28",
+			"Default": "10.0.0.0/16",
+			"Description": "CIDR block for the VPC",
+			"Type": "String"
+		}
+	},
+	"Rules": {
+		"SubnetsInVPC": {
+			"Assertions": [{
+				"Assert": {
+					"Fn::EachMemberIn": [{
+							"Fn::ValueOfAll": [
+								"AWS::EC2::Subnet::Id",
+								"VpcId"
+							]
+						},
+						{
+							"Fn::RefAll": "AWS::EC2::VPC::Id"
+						}
+					]
+				},
+				"AssertDescription": "All subnets must in the VPC"
+			}]
+		}
+	},
+	"Mappings": {
+		"AWSAMIRegionMap": {
+			"AMI": {
+				"AMZNLINUXHVM": "amzn-ami-hvm-2017.03.0.20170417-x86_64-gp2",
+				"NGINXPLUSAMZNLINUXHVM": "nginx-plus-ami-amazon-linux-hvm-v1.1-20160426.x86_64-ebs-53d2479a-ccf6-4126-bd04-05e5c885727f-ami-3aedf750.3"
+			},
+			"ap-northeast-1": {
+				"AMZNLINUXHVM": "ami-56d4ad31",
+				"NGINXPLUSAMZNLINUXHVM": "ami-79baa317"
+			},
+			"ap-northeast-2": {
+				"AMZNLINUXHVM": "ami-dac312b4",
+				"NGINXPLUSAMZNLINUXHVM": "ami-6325ed0d"
+			},
+			"ap-southeast-1": {
+				"AMZNLINUXHVM": "ami-dc9339bf",
+				"NGINXPLUSAMZNLINUXHVM": "ami-261e7449"
+			},
+			"ap-southeast-2": {
+				"AMZNLINUXHVM": "ami-1c47407f",
+				"NGINXPLUSAMZNLINUXHVM": "ami-aefed3cd"
+			},
+			"ca-central-1": {
+				"AMZNLINUXHVM": "ami-0bd66a6f",
+				"NGINXPLUSAMZNLINUXHVM": "ami-0853e16c"
+			},
+			"eu-central-1": {
+				"AMZNLINUXHVM": "ami-af0fc0c0",
+				"NGINXPLUSAMZNLINUXHVM": "ami-9d7a99f2"
+			},
+			"eu-west-1": {
+				"AMZNLINUXHVM": "ami-70edb016",
+				"NGINXPLUSAMZNLINUXHVM": "ami-a1f876d2"
+			},
+			"eu-west-2": {
+				"AMZNLINUXHVM": "ami-f1949e95",
+				"NGINXPLUSAMZNLINUXHVM": "ami-b3c1cbd7"
+			},
+			"sa-east-1": {
+				"AMZNLINUXHVM": "ami-80086dec",
+				"NGINXPLUSAMZNLINUXHVM": "ami-5237b93e"
+			},
+			"us-east-1": {
+				"AMZNLINUXHVM": "ami-c58c1dd3",
+				"NGINXPLUSAMZNLINUXHVM": "ami-ff849e95"
+			},
+			"us-east-2": {
+				"AMZNLINUXHVM": "ami-c55673a0",
+				"NGINXPLUSAMZNLINUXHVM": "ami-936f34f6"
+			},
+			"us-west-1": {
+				"AMZNLINUXHVM": "ami-165a0876",
+				"NGINXPLUSAMZNLINUXHVM": "ami-a9631dc9"
+			},
+			"us-west-2": {
+				"AMZNLINUXHVM": "ami-f173cc91",
+				"NGINXPLUSAMZNLINUXHVM": "ami-04eb1b64"
+			}
+		},
+		"LinuxAMINameMap": {
+			"Amazon-Linux-HVM": {
+				"Code": "AMZNLINUXHVM"
+			},
+			"NGINX-Plus-HVM": {
+				"Code": "NGINXPLUSHVM"
+			}
+		}
+	},
+	"Conditions": {
+		"GovCloudCondition": {
+			"Fn::Equals": [{
+					"Ref": "AWS::Region"
+				},
+				"us-gov-west-1"
+			]
+		}
+	},
+	"Resources": {
+		"NGINXPlusELBSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enables access to the NGINX ELB",
+				"VpcId": {
+					"Ref": "VPCID"
+				},
+				"SecurityGroupIngress": [{
+					"IpProtocol": "tcp",
+					"FromPort": "80",
+					"ToPort": "80",
+					"CidrIp": "0.0.0.0/0"
+				}],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "NGINXPlusELBSecurityGroup"
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start"
+					}
+				]
+			}
+		},
+		"NGINXPlusInstancesSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enables access to NGINX Plus instances.",
+				"VpcId": {
+					"Ref": "VPCID"
+				},
+				"SecurityGroupIngress": [{
+						"IpProtocol": "tcp",
+						"FromPort": "22",
+						"ToPort": "22",
+						"SourceSecurityGroupId": {
+							"Ref": "BastionSecurityGroupID"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "8080",
+						"ToPort": "8080",
+						"CidrIp": {
+							"Ref": "RemoteAccessCIDR"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "80",
+						"ToPort": "80",
+						"SourceSecurityGroupId": {
+							"Fn::GetAtt": [
+								"NGINXPlusELBSecurityGroup",
+								"GroupId"
+							]
+						}
+					}
+				]
+			}
+		},
+		"WebAppInstancesSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enables access to WebApp instances.",
+				"VpcId": {
+					"Ref": "VPCID"
+				},
+				"SecurityGroupIngress": [{
+						"IpProtocol": "tcp",
+						"FromPort": "22",
+						"ToPort": "22",
+						"SourceSecurityGroupId": {
+							"Ref": "BastionSecurityGroupID"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "8100",
+						"ToPort": "8100",
+						"CidrIp": {
+							"Ref": "VPCCIDR"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "8200",
+						"ToPort": "8200",
+						"CidrIp": {
+							"Ref": "VPCCIDR"
+						}
+					}
+				],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "WebAppInstancesSecurityGroup"
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start"
+					}
+				]
+			}
+		},
+		"NGINXWebApp1LaunchConfiguration": {
+			"Type": "AWS::AutoScaling::LaunchConfiguration",
+			"Metadata": {
+				"AWS::CloudFormation::Authentication": {
+					"S3AccessCreds": {
+						"type": "S3",
+						"roleName": {
+							"Ref": "NGINXPlusIAMRole"
+						},
+						"buckets": [{
+							"Ref": "QSS3BucketName"
+						}]
+					}
+				},
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"bootstrap_install": [
+							"install_cfn",
+							"prepare_system",
+							"configure_nginx"
+						]
+					},
+					"install_cfn": {
+						"files": {
+							"/etc/cfn/cfn-hup.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[main]\n",
+											"stack=",
+											{
+												"Ref": "AWS::StackId"
+											},
+											"\n",
+											"region=",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							},
+							"/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[cfn-auto-reloader-hook]\n",
+											"triggers=post.update\n",
+											"path=Resources.NGINXWebApp1LaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+											"action=/opt/aws/bin/cfn-init -v ",
+											"         --stack ",
+											{
+												"Ref": "AWS::StackName"
+											},
+											"         --resource NGINXWebApp1LaunchConfiguration ",
+											"         --configsets bootstrap_install ",
+											"         --region ",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"cfn-hup": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/cfn/cfn-hup.conf",
+										"/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+									]
+								}
+							}
+						}
+					},
+					"prepare_system": {
+						"packages": {
+							"yum": {
+								"nginx": []
+							}
+						}
+					},
+					"configure_nginx": {
+						"files": {
+							"/usr/share/nginx/html/index.html": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/index.html",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"/etc/nginx/conf.d/webapp1.conf": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/webapp1.conf",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"nginx": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/nginx/conf.d/webapp1.conf"
+									]
+								}
+							}
+						}
+					}
+				}
+			},
+			"Properties": {
+				"ImageId": {
+					"Fn::FindInMap": [
+						"AWSAMIRegionMap",
+						{
+							"Ref": "AWS::Region"
+						},
+						"AMZNLINUXHVM"
+					]
+				},
+				"InstanceType": {
+					"Ref": "NGINXInstanceType"
+				},
+				"KeyName": {
+					"Ref": "KeyPairName"
+				},
+				"IamInstanceProfile": {
+					"Ref": "NGINXPlusInstanceProfile"
+				},
+				"SecurityGroups": [{
+					"Ref": "WebAppInstancesSecurityGroup"
+				}],
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"", [
+								"#!/bin/bash\n",
+								"yum update -y",
+								"\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								" --resource NGINXWebApp1LaunchConfiguration",
+								" --configsets bootstrap_install ",
+								" --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n"
+							]
+						]
+					}
+				}
+			}
+		},
+		"NGINXWebApp1Group": {
+			"Type": "AWS::AutoScaling::AutoScalingGroup",
+			"Properties": {
+				"AvailabilityZones": {
+					"Ref": "AvailabilityZones"
+				},
+				"Cooldown": "300",
+				"MaxSize": "5",
+				"MinSize": "1",
+				"DesiredCapacity": "2",
+				"HealthCheckGracePeriod": "300",
+				"HealthCheckType": "EC2",
+				"VPCZoneIdentifier": [{
+						"Ref": "PrivateSubnet1ID"
+					},
+					{
+						"Ref": "PrivateSubnet2ID"
+					}
+				],
+				"LaunchConfigurationName": {
+					"Ref": "NGINXWebApp1LaunchConfiguration"
+				},
+				"Tags": [{
+						"Key": "Name",
+						"Value": "WebApp1 Auto Scaling group",
+						"PropagateAtLaunch": true
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start",
+						"PropagateAtLaunch": true
+					}
+				]
+			}
+		},
+		"NGINXWebApp2LaunchConfiguration": {
+			"Type": "AWS::AutoScaling::LaunchConfiguration",
+			"Metadata": {
+				"AWS::CloudFormation::Authentication": {
+					"S3AccessCreds": {
+						"type": "S3",
+						"roleName": {
+							"Ref": "NGINXPlusIAMRole"
+						},
+						"buckets": [{
+							"Ref": "QSS3BucketName"
+						}]
+					}
+				},
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"bootstrap_install": [
+							"install_cfn",
+							"prepare_system",
+							"configure_nginx"
+						]
+					},
+					"install_cfn": {
+						"files": {
+							"/etc/cfn/cfn-hup.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[main]\n",
+											"stack=",
+											{
+												"Ref": "AWS::StackId"
+											},
+											"\n",
+											"region=",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							},
+							"/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[cfn-auto-reloader-hook]\n",
+											"triggers=post.update\n",
+											"path=Resources.NGINXWebApp2LaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+											"action=/opt/aws/bin/cfn-init -v ",
+											"         --stack ",
+											{
+												"Ref": "AWS::StackName"
+											},
+											"         --resource NGINXWebApp2LaunchConfiguration ",
+											"         --configsets bootstrap_install ",
+											"         --region ",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"cfn-hup": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/cfn/cfn-hup.conf",
+										"/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+									]
+								}
+							}
+						}
+					},
+					"prepare_system": {
+						"packages": {
+							"yum": {
+								"nginx": []
+							}
+						}
+					},
+					"configure_nginx": {
+						"files": {
+							"/usr/share/nginx/html/index.html": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/index.html",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"/etc/nginx/conf.d/webapp2.conf": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/webapp2.conf",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"nginx": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/nginx/conf.d/webapp2.conf"
+									]
+								}
+							}
+						}
+					}
+				}
+			},
+			"Properties": {
+				"ImageId": {
+					"Fn::FindInMap": [
+						"AWSAMIRegionMap",
+						{
+							"Ref": "AWS::Region"
+						},
+						"AMZNLINUXHVM"
+					]
+				},
+				"InstanceType": {
+					"Ref": "NGINXInstanceType"
+				},
+				"KeyName": {
+					"Ref": "KeyPairName"
+				},
+				"IamInstanceProfile": {
+					"Ref": "NGINXPlusInstanceProfile"
+				},
+				"SecurityGroups": [{
+					"Ref": "WebAppInstancesSecurityGroup"
+				}],
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"", [
+								"#!/bin/bash\n",
+								"yum update -y",
+								"\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								" --resource NGINXWebApp2LaunchConfiguration",
+								" --configsets bootstrap_install ",
+								" --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n"
+							]
+						]
+					}
+				}
+			}
+		},
+		"NGINXWebApp2Group": {
+			"Type": "AWS::AutoScaling::AutoScalingGroup",
+			"Properties": {
+				"AvailabilityZones": {
+					"Ref": "AvailabilityZones"
+				},
+				"Cooldown": "300",
+				"MaxSize": "5",
+				"MinSize": "1",
+				"DesiredCapacity": "3",
+				"HealthCheckGracePeriod": "300",
+				"HealthCheckType": "EC2",
+				"VPCZoneIdentifier": [{
+						"Ref": "PrivateSubnet1ID"
+					},
+					{
+						"Ref": "PrivateSubnet2ID"
+					}
+				],
+				"LaunchConfigurationName": {
+					"Ref": "NGINXWebApp2LaunchConfiguration"
+				},
+				"Tags": [{
+						"Key": "Name",
+						"Value": "WebApp2 Auto Scaling group",
+						"PropagateAtLaunch": true
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start",
+						"PropagateAtLaunch": true
+					}
+				]
+			}
+		},
+		"NGINXPlusELB": {
+			"Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+			"Properties": {
+				"CrossZone": "true",
+				"HealthCheck": {
+					"Target": "HTTP:80/",
+					"HealthyThreshold": "10",
+					"UnhealthyThreshold": "2",
+					"Interval": "30",
+					"Timeout": "5"
+				},
+				"LoadBalancerName": "NGINXPlusELB",
+				"Listeners": [{
+					"LoadBalancerPort": "80",
+					"InstancePort": "80",
+					"Protocol": "HTTP"
+				}],
+				"Subnets": [{
+						"Ref": "PublicSubnet1ID"
+					},
+					{
+						"Ref": "PublicSubnet2ID"
+					}
+				],
+				"Scheme": "internet-facing",
+				"SecurityGroups": [{
+					"Ref": "NGINXPlusELBSecurityGroup"
+				}],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "NGINXPlusELB"
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start"
+					}
+				]
+			}
+		},
+		"NGINXPlusLaunchConfiguration": {
+			"Type": "AWS::AutoScaling::LaunchConfiguration",
+			"Metadata": {
+				"AWS::CloudFormation::Authentication": {
+					"S3AccessCreds": {
+						"type": "S3",
+						"roleName": {
+							"Ref": "NGINXPlusIAMRole"
+						},
+						"buckets": [{
+							"Ref": "QSS3BucketName"
+						}]
+					}
+				},
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"bootstrap_install": [
+							"install_cfn",
+							"install_nginx_asg_sync",
+							"configure_nginx_asg_sync",
+							"configure_nginx",
+							"start_nginx_asg_sync"
+						]
+					},
+					"install_cfn": {
+						"files": {
+							"/etc/cfn/cfn-hup.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[main]\n",
+											"stack=",
+											{
+												"Ref": "AWS::StackId"
+											},
+											"\n",
+											"region=",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							},
+							"/etc/cfn/hooks.d/cfn-auto-reloader.conf": {
+								"content": {
+									"Fn::Join": [
+										"", [
+											"[cfn-auto-reloader-hook]\n",
+											"triggers=post.update\n",
+											"path=Resources.NGINXPlusLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n",
+											"action=/opt/aws/bin/cfn-init -v ",
+											"         --stack ",
+											{
+												"Ref": "AWS::StackName"
+											},
+											"         --resource NGINXPlusLaunchConfiguration ",
+											"         --configsets bootstrap_install ",
+											"         --region ",
+											{
+												"Ref": "AWS::Region"
+											},
+											"\n"
+										]
+									]
+								},
+								"mode": "000400",
+								"owner": "root",
+								"group": "root"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"cfn-hup": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/cfn/cfn-hup.conf",
+										"/etc/cfn/hooks.d/cfn-auto-reloader.conf"
+									]
+								}
+							}
+						}
+					},
+					"install_nginx_asg_sync": {
+						"commands": {
+							"01-download": {
+								"command": "wget https://github.com/nginxinc/nginx-asg-sync/releases/download/v0.1-1/nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+							},
+							"02-install": {
+								"command": "rpm -i nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+							},
+							"03-remove": {
+								"command": "rm nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+							}
+						}
+					},
+					"configure_nginx_asg_sync": {
+						"files": {
+							"/etc/nginx/aws.yaml": {
+								"content": {
+									"Fn::Join": ["", [
+										"region: ",
+										{
+											"Ref": "AWS::Region"
+										},
+										"\n",
+										"upstream_conf_endpoint: http://127.0.0.1:8080/upstream_conf\n",
+										"status_endpoint: http://127.0.0.1:8080/status\n",
+										"sync_interval_in_seconds: 5\n",
+										"upstreams:\n",
+										"  - name: webapp1\n",
+										"    autoscaling_group: ", {
+											"Ref": "NGINXWebApp1Group"
+										}, "\n",
+										"    port: 8100\n",
+										"    kind: http\n",
+										"  - name: webapp2\n",
+										"    autoscaling_group: ", {
+											"Ref": "NGINXWebApp2Group"
+										}, "\n",
+										"    port: 8200\n",
+										"    kind: http\n"
+									]]
+								},
+								"mode": "000644",
+								"owner": "root",
+								"group": "root"
+							}
+						}
+					},
+					"configure_nginx": {
+						"files": {
+							"/etc/nginx/conf.d/lb.conf": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/lb.conf",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"/etc/nginx/conf.d/status.conf": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/status.conf",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"/etc/nginx/conf.d/default.conf": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/default.conf",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							},
+							"/usr/share/nginx/html/index.html": {
+								"source": {
+									"Fn::Sub": [
+										"https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}scripts/lb-index.html",
+										{
+											"QSS3Region": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"s3-us-gov-west-1",
+													"s3"
+												]
+											}
+										}
+									]
+								},
+								"authentication": "S3AccessCreds"
+							}
+						},
+						"services": {
+							"sysvinit": {
+								"nginx": {
+									"enabled": "true",
+									"ensureRunning": "true",
+									"files": [
+										"/etc/nginx/conf.d/lb.conf",
+										"/etc/nginx/conf.d/status.conf",
+										"/etc/nginx/conf.d/default.conf"
+									]
+								}
+							}
+						}
+					},
+					"start_nginx_asg_sync": {
+						"commands": {
+							"start": {
+								"command": "start nginx-asg-sync"
+							}
+						}
+					}
+				}
+			},
+			"Properties": {
+				"ImageId": {
+					"Fn::FindInMap": [
+						"AWSAMIRegionMap",
+						{
+							"Ref": "AWS::Region"
+						},
+						"NGINXPLUSAMZNLINUXHVM"
+					]
+				},
+				"InstanceType": {
+					"Ref": "NGINXInstanceType"
+				},
+				"KeyName": {
+					"Ref": "KeyPairName"
+				},
+				"IamInstanceProfile": {
+					"Ref": "NGINXPlusInstanceProfile"
+				},
+				"SecurityGroups": [{
+					"Ref": "NGINXPlusInstancesSecurityGroup"
+				}],
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"", [
+								"#!/bin/bash\n",
+								"yum update -y",
+								"\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								" --resource NGINXPlusLaunchConfiguration",
+								" --configsets bootstrap_install ",
+								" --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n",
+								"/opt/aws/bin/cfn-signal -e $? ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								"         --resource NGINXPlusGroup",
+								"         --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n"
+							]
+						]
+					}
+				}
+			}
+		},
+		"NGINXPlusGroup": {
+			"Type": "AWS::AutoScaling::AutoScalingGroup",
+			"Properties": {
+				"AvailabilityZones": {
+					"Ref": "AvailabilityZones"
+				},
+				"Cooldown": "300",
+				"MaxSize": "2",
+				"MinSize": "2",
+				"DesiredCapacity": "2",
+				"HealthCheckGracePeriod": "300",
+				"HealthCheckType": "EC2",
+				"VPCZoneIdentifier": [{
+						"Ref": "PublicSubnet1ID"
+					},
+					{
+						"Ref": "PublicSubnet2ID"
+					}
+				],
+				"LaunchConfigurationName": {
+					"Ref": "NGINXPlusLaunchConfiguration"
+				},
+				"LoadBalancerNames": [{
+					"Ref": "NGINXPlusELB"
+				}],
+				"Tags": [{
+						"Key": "Name",
+						"Value": "NGINX Plus Load Balancer",
+						"PropagateAtLaunch": true
+					},
+					{
+						"Key": "Environment",
+						"Value": "AWS Quick Start",
+						"PropagateAtLaunch": true
+					}
+				]
+			},
+			"CreationPolicy": {
+				"ResourceSignal": {
+					"Count": "2",
+					"Timeout": "PT30M"
+				}
+			}
+		},
+		"NGINXPlusIAMRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": ["ec2.amazonaws.com"]
+						},
+						"Action": ["sts:AssumeRole"]
+					}]
+				},
+				"Policies": [{
+						"PolicyName": "nginx-qs-policy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+									"Effect": "Allow",
+									"Action": "ec2:DescribeInstances",
+									"Resource": "*"
+								},
+								{
+									"Effect": "Allow",
+									"Action": "autoscaling:DescribeAutoScalingGroups",
+									"Resource": "*"
+								}
+							]
+						}
+					},
+					{
+						"PolicyName": "nginx-quick-start-s3-policy",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [{
+								"Action": [
+									"s3:GetObject"
+								],
+								"Resource": {
+									"Fn::Sub": [
+										"arn:${Partition}:s3:::${QSS3BucketName}/${QSS3KeyPrefix}*",
+										{
+											"Partition": {
+												"Fn::If": [
+													"GovCloudCondition",
+													"aws-us-gov",
+													"aws"
+												]
+											}
+										}
+									]
+								},
+								"Effect": "Allow"
+							}]
+						}
+					}
+				]
+			}
+		},
+		"NGINXPlusInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+				"Path": "/",
+				"Roles": [{
+					"Ref": "NGINXPlusIAMRole"
+				}]
+			}
+		}
+	},
+	"Outputs": {
+		"NGINXPlusLink": {
+			"Value": {
+				"Fn::Join": ["", [
+					"http://",
+					{
+						"Fn::GetAtt": [
+							"NGINXPlusELB",
+							"DNSName"
+						]
+					}
+				]]
+			},
+			"Description": "Connect to NGINX Plus through ELB"
+		},
+		"NGINXPlusELBSecurityGroup": {
+			"Description": "NGINX Plus ELB Security Group",
+			"Value": {
+				"Ref": "NGINXPlusELBSecurityGroup"
+			}
+		},
+		"NGINXPlusInstancesSecurityGroup": {
+			"Description": "NGINX Plus Instances Security Group",
+			"Value": {
+				"Ref": "NGINXPlusInstancesSecurityGroup"
+			}
+		},
+		"WebAppInstancesSecurityGroup": {
+			"Description": "WebApp Instances Security Group",
+			"Value": {
+				"Ref": "WebAppInstancesSecurityGroup"
+			}
+		},
+		"NGINXWebApp1LaunchConfiguration": {
+			"Description": "NGINX WebApp1 Launch Configuration",
+			"Value": {
+				"Ref": "NGINXWebApp1LaunchConfiguration"
+			}
+		},
+		"NGINXWebApp1Group": {
+			"Description": "NGINX WebApp1 Auto Scaling Group",
+			"Value": {
+				"Ref": "NGINXWebApp1Group"
+			}
+		},
+		"NGINXWebApp2LaunchConfiguration": {
+			"Description": "NGINX WebApp2 Launch Configuration",
+			"Value": {
+				"Ref": "NGINXWebApp2LaunchConfiguration"
+			}
+		},
+		"NGINXWebApp2Group": {
+			"Description": "NGINX WebApp2 Auto Scaling Group",
+			"Value": {
+				"Ref": "NGINXWebApp2Group"
+			}
+		},
+		"NGINXPlusELB": {
+			"Description": "ELB for NGINX Plus Instances",
+			"Value": {
+				"Ref": "NGINXPlusELB"
+			}
+		},
+		"NGINXPlusLaunchConfiguration": {
+			"Description": "NGINX Plus Launch Configuration",
+			"Value": {
+				"Ref": "NGINXPlusLaunchConfiguration"
+			}
+		},
+		"NGINXPlusGroup": {
+			"Description": "NGINX Plus Auto Scaling Group",
+			"Value": {
+				"Ref": "NGINXPlusGroup"
+			}
+		},
+		"NGINXPlusIAMRole": {
+			"Description": "IAM Role for nginx-asg-sync",
+			"Value": {
+				"Ref": "NGINXPlusGroup"
+			}
+		},
+		"NGINXPlusInstanceProfile": {
+			"Description": "NGINX Plus Instance Profile",
+			"Value": {
+				"Ref": "NGINXPlusInstanceProfile"
+			}
+		}
+	}
 }
