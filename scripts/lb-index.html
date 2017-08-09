@@ -33,21 +33,7 @@
   </h1>
   <p>NGINX Plus is load balancing two web applications, each deployed in an AWS Auto Scaling group.</p>
   <p>Click on <a href="/webapp1">Webapp1</a>  to access the first application, <a href="/webapp2">Webapp2</a> -- the second.</p>
-  <p>Each instance of NGINX Plus deployed in the QuickStart is configured with the live activity monitoring dashboard, which reports NGINX Plus metrics in real time, including metrics per each WebApp instance. To access the dashboard, use the public IP of each NGINX Plus instance and port 8080: <br/> <em>http://&lt;public-ip-nginx-plus-lb1&gt;:8080</em> and <em>http://&lt;public-ip-nginx-plus-lb2&gt;:8080</em></p>
   <p>More information about the Quick Start is available in the <a href="https://s3.amazonaws.com/quickstart-reference/nginx/plus/latest/doc/nginx-plus-on-the-aws-cloud.pdf">Quick Start deployment guide</a>. Additional information about NGINX Plus configuration is available in the <a href="https://www.nginx.com/resources/admin-guide/">Admin Guide</a>.</p>
   <p>The Quick Start uses additional software to integrate NGINX Plus with Auto Scaling -- <a href="https://github.com/nginxinc/nginx-asg-sync">nginx-asg-sync</a>.</p>
-  <h2>Scaling Demo</h2>
-  <p>The demo shows how NGINX Plus configuration is updated whenever the number of instances in WebApp1 or WebApp2 Auto Scaling group changes.</p>
-  <ol>
-    <li>Open the Upstream tab of the NGINX Plus dashboard to see the current instances of each WebApp Auto Scaling group.</li>
-    <li>Log into the EC2 console and select the region where you have deployed the NGINX Plus QuickStart.</li>
-    <li>Change the number of desired instances for each WebApp group via the EC2 Console, making sure the desired value does not exceed the maximum value for your auto scaling group:
-      <ol>
-        <li>Increase the number for WebApp1.</li>
-        <li>Decrease the number for WebApp2.</li>
-      </ol>
-    </li>
-    <li>Observe how the newly launched instances appear on the dashboard, while the terminated ones disappear.</li>
-  </ol>
 </body>
 </html>
