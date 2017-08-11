@@ -20,12 +20,33 @@
                 },
                 {
                     "Label": {
-                        "default": "Amazon EC2 Configuration"
+                        "default": "Common Amazon EC2 Configuration"
                     },
                     "Parameters": [
                         "KeyPairName",
-                        "BastionHostInstanceType",
-                        "NGINXInstanceType"
+                        "BastionHostInstanceType"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "NGINX Plus Load Balancer Configuration"
+                    },
+                    "Parameters": [
+                        "NGINXPlusInstanceType",
+                        "NGINXPlusNodesDesiredCapacity",
+                        "NGINXPlusNodesMinSize",
+                        "NGINXPlusNodesMaxSize"
+                    ]
+                },
+                {
+                    "Label": {
+                        "default": "Web App Configuration"
+                    },
+                    "Parameters": [
+                        "WebAppInstanceType",
+                        "WebAppNodesDesiredCapacity",
+                        "WebAppNodesMinSize",
+                        "WebAppNodesMaxSize"
                     ]
                 },
                 {
@@ -48,11 +69,17 @@
                 "KeyPairName": {
                     "default": "Key Pair Name"
                 },
-                "NATInstanceType": {
-                    "default": "NAT Instance Type"
+                "NGINXPlusInstanceType": {
+                    "default": "NGINX Plus Instance Type"
                 },
-                "NGINXInstanceType": {
-                    "default": "NGINX Instance Type"
+                "NGINXPlusNodesDesiredCapacity": {
+                    "default": "NGINX Plus Desired Capacity"
+                },
+                "NGINXPlusNodesMaxSize": {
+                    "default": "NGINX Plus Max Size"
+                },
+                "NGINXPlusNodesMinSize": {
+                    "default": "NGINX Plus Min Size"
                 },
                 "PrivateSubnet1CIDR": {
                     "default": "Private Subnet 1 CIDR"
@@ -72,11 +99,23 @@
                 "QSS3KeyPrefix": {
                     "default": "Quick Start S3 Key Prefix"
                 },
+                "RemoteAccessCIDR": {
+                    "default": "Allowed Bastion External Access CIDR"
+                },
                 "VPCCIDR": {
                     "default": "VPC CIDR"
                 },
-                "RemoteAccessCIDR": {
-                    "default": "Allowed Bastion External Access CIDR"
+                "WebAppInstanceType": {
+                    "default": "Web App Instance Type"
+                },
+                "WebAppNodesDesiredCapacity": {
+                    "default": "Web App Desired Capacity"
+                },
+                "WebAppNodesMaxSize": {
+                    "default": "Web App Max Size"
+                },
+                "WebAppNodesMinSize": {
+                    "default": "Web App Min Size"
                 }
             }
         }
@@ -101,8 +140,8 @@
             "Description": "Public/private key pairs allow you to securely connect to your instance after it launches",
             "Type": "AWS::EC2::KeyPair::KeyName"
         },
-        "NGINXInstanceType": {
-            "Description": "Amazon EC2 instance type for the NGINX Plus load balancing and application instances",
+        "NGINXPlusInstanceType": {
+            "Description": "Amazon EC2 instance type for the NGINX Plus load balancing instances",
             "Type": "String",
             "Default": "t2.micro",
             "AllowedValues": [
@@ -111,6 +150,21 @@
                 "t2.medium",
                 "t2.large"
             ]
+        },
+        "NGINXPlusNodesDesiredCapacity": {
+            "Default": "2",
+            "Description": "The desired capacity for the NGINX Plus Auto Scaling group",
+            "Type": "Number"
+        },
+        "NGINXPlusNodesMaxSize": {
+            "Default": "5",
+            "Description": "The maximum size of the NGINX Plus Auto Scaling group",
+            "Type": "Number"
+        },
+        "NGINXPlusNodesMinSize": {
+            "Default": "2",
+            "Description": "The minimum size of the NGINX Plus Auto Scaling group",
+            "Type": "Number"
         },
         "PrivateSubnet1CIDR": {
             "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\\/(1[6-9]|2[0-8]))$",
@@ -166,6 +220,32 @@
             "Default": "10.0.0.0/16",
             "Description": "CIDR Block for the VPC",
             "Type": "String"
+        },
+        "WebAppInstanceType": {
+            "Description": "Amazon EC2 instance type for the web application instances",
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t2.micro",
+                "t2.small",
+                "t2.medium",
+                "t2.large"
+            ]
+        },
+        "WebAppNodesDesiredCapacity": {
+            "Default": "2",
+            "Description": "The desired capacity for the web application Auto Scaling group",
+            "Type": "Number"
+        },
+        "WebAppNodesMaxSize": {
+            "Default": "5",
+            "Description": "The maximum size of the web application Auto Scaling group",
+            "Type": "Number"
+        },
+        "WebAppNodesMinSize": {
+            "Default": "1",
+            "Description": "The minimum size of the web application Auto Scaling group",
+            "Type": "Number"
         }
     },
     "Conditions": {
@@ -232,6 +312,9 @@
             "Properties": {
                 "Parameters": {
                     "BastionAMIOS": "Amazon-Linux-HVM",
+                    "BastionHostInstanceType": {
+                        "Ref": "BastionHostInstanceType"
+                    },
                     "KeyPairName": {
                         "Ref": "KeyPairName"
                     },
@@ -306,28 +389,26 @@
                     ]
                 },
                 "Parameters": {
-                    "AvailabilityZones": {
-                        "Fn::Join": [
-                            ",",
-                            {
-                                "Ref": "AvailabilityZones"
-                            }
-                        ]
-                    },
                     "BastionSecurityGroupID": {
                         "Fn::GetAtt": [
                             "LinuxBastionHostStack",
                             "Outputs.BastionSecurityGroupID"
                         ]
                     },
-                    "RemoteAccessCIDR": {
-                        "Ref": "RemoteAccessCIDR"
-                    },
                     "KeyPairName": {
                         "Ref": "KeyPairName"
                     },
-                    "NGINXInstanceType": {
-                        "Ref": "NGINXInstanceType"
+                    "NGINXPlusInstanceType": {
+                        "Ref": "NGINXPlusInstanceType"
+                    },
+                    "NGINXPlusNodesDesiredCapacity": {
+                        "Ref": "NGINXPlusNodesDesiredCapacity"
+                    },
+                    "NGINXPlusNodesMaxSize": {
+                        "Ref": "NGINXPlusNodesMaxSize"
+                    },
+                    "NGINXPlusNodesMinSize": {
+                        "Ref": "NGINXPlusNodesMinSize"
                     },
                     "QSS3BucketName": {
                         "Ref": "QSS3BucketName"
@@ -359,14 +440,23 @@
                             "Outputs.PublicSubnet2ID"
                         ]
                     },
-                    "VPCCIDR": {
-                        "Ref": "VPCCIDR"
-                    },
                     "VPCID": {
                         "Fn::GetAtt": [
                             "VPCStack",
                             "Outputs.VPCID"
                         ]
+                    },
+                    "WebAppInstanceType": {
+                        "Ref": "WebAppInstanceType"
+                    },
+                    "WebAppNodesDesiredCapacity": {
+                        "Ref": "WebAppNodesDesiredCapacity"
+                    },
+                    "WebAppNodesMaxSize": {
+                        "Ref": "WebAppNodesMaxSize"
+                    },
+                    "WebAppNodesMinSize": {
+                        "Ref": "WebAppNodesMinSize"
                     }
                 }
             }
