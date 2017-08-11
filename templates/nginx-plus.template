@@ -481,16 +481,12 @@
                                 "#!/bin/bash\n",
                                 "yum update -y",
                                 "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NGINXWebApp1LaunchConfiguration --configsets bootstrap_install --region ${AWS::Region}"
                                 },
-                                " --resource NGINXWebApp1LaunchConfiguration",
-                                " --configsets bootstrap_install ",
-                                " --region ",
+                                "\n",
                                 {
-                                    "Ref": "AWS::Region"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource NGINXWebApp1Group --region ${AWS::Region}"
                                 },
                                 "\n"
                             ]
@@ -534,6 +530,12 @@
                         "PropagateAtLaunch": true
                     }
                 ]
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Count": "2",
+                    "Timeout": "PT30M"
+                }
             }
         },
         "NGINXWebApp2LaunchConfiguration": {
@@ -649,16 +651,12 @@
                                 "#!/bin/bash\n",
                                 "yum update -y",
                                 "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NGINXWebApp2LaunchConfiguration --configsets bootstrap_install --region ${AWS::Region}"
                                 },
-                                " --resource NGINXWebApp2LaunchConfiguration",
-                                " --configsets bootstrap_install ",
-                                " --region ",
+                                "\n",
                                 {
-                                    "Ref": "AWS::Region"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource NGINXWebApp2Group --region ${AWS::Region}"
                                 },
                                 "\n"
                             ]
@@ -676,7 +674,7 @@
                 "Cooldown": "300",
                 "MaxSize": "5",
                 "MinSize": "1",
-                "DesiredCapacity": "3",
+                "DesiredCapacity": "2",
                 "HealthCheckGracePeriod": "300",
                 "HealthCheckType": "EC2",
                 "VPCZoneIdentifier": [
@@ -702,6 +700,12 @@
                         "PropagateAtLaunch": true
                     }
                 ]
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Count": "2",
+                    "Timeout": "PT30M"
+                }
             }
         },
         "NGINXPlusELB": {
@@ -954,27 +958,12 @@
                                 "#!/bin/bash\n",
                                 "yum update -y",
                                 "\n",
-                                "/opt/aws/bin/cfn-init -v ",
-                                "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
-                                },
-                                " --resource NGINXPlusLaunchConfiguration",
-                                " --configsets bootstrap_install ",
-                                " --region ",
-                                {
-                                    "Ref": "AWS::Region"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource NGINXPlusLaunchConfiguration --configsets bootstrap_install --region ${AWS::Region}"
                                 },
                                 "\n",
-                                "/opt/aws/bin/cfn-signal -e $? ",
-                                "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
-                                },
-                                "         --resource NGINXPlusGroup",
-                                "         --region ",
-                                {
-                                    "Ref": "AWS::Region"
+                                    "Fn::Sub": "/opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource NGINXPlusGroup --region ${AWS::Region}"
                                 },
                                 "\n"
                             ]
