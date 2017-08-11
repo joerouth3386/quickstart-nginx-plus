@@ -3,7 +3,8 @@
     "Description": "This template creates a VPC infrastructure for a multi-AZ deployment of NGINX Plus. It will deploy NGINX Plus instances into the private subnets in separate Availability Zones. ***NOTE*** You must subscribe to the NGINX Plus - Amazon Linux AMI HVM from the AWS Marketplace before you launch this template. See the deployment guide at http://aws.amazon.com/quickstart for details. This template creates Amazon EC2 instances and related resources. You will be billed for the AWS resources used if you create a stack from this template.",
     "Metadata": {
         "AWS::CloudFormation::Interface": {
-            "ParameterGroups": [{
+            "ParameterGroups": [
+                {
                     "Label": {
                         "default": "Network Configuration"
                     },
@@ -169,7 +170,8 @@
     },
     "Conditions": {
         "GovCloudCondition": {
-            "Fn::Equals": [{
+            "Fn::Equals": [
+                {
                     "Ref": "AWS::Region"
                 },
                 "us-gov-west-1"
@@ -182,7 +184,8 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template", {
+                        "https://${QSS3BucketName}.${QSS3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template",
+                        {
                             "QSS3Region": {
                                 "Fn::If": [
                                     "GovCloudCondition",
@@ -249,7 +252,8 @@
                     },
                     "QSS3KeyPrefix": {
                         "Fn::Sub": [
-                            "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/", {
+                            "${QSS3KeyPrefix}submodules/quickstart-linux-bastion/",
+                            {
                                 "QSS3KeyPrefix": {
                                     "Ref": "QSS3KeyPrefix"
                                 }
@@ -268,7 +272,8 @@
                 },
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${S3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template", {
+                        "https://${QSS3BucketName}.${S3Region}.amazonaws.com/${QSS3KeyPrefix}submodules/quickstart-linux-bastion/templates/linux-bastion.template",
+                        {
                             "S3Region": {
                                 "Fn::If": [
                                     "GovCloudCondition",
@@ -288,7 +293,8 @@
             "Properties": {
                 "TemplateURL": {
                     "Fn::Sub": [
-                        "https://${QSS3BucketName}.${S3Region}.amazonaws.com/${QSS3KeyPrefix}templates/nginx-plus.template", {
+                        "https://${QSS3BucketName}.${S3Region}.amazonaws.com/${QSS3KeyPrefix}templates/nginx-plus.template",
+                        {
                             "S3Region": {
                                 "Fn::If": [
                                     "GovCloudCondition",
