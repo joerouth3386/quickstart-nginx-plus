@@ -305,8 +305,8 @@
                         "IpProtocol": "tcp",
                         "FromPort": "8080",
                         "ToPort": "8080",
-                        "CidrIp": {
-                            "Ref": "VPCCIDR"
+                        "SourceSecurityGroupId": {
+                            "Ref": "BastionSecurityGroupID"
                         }
                     },
                     {
@@ -314,10 +314,7 @@
                         "FromPort": "80",
                         "ToPort": "80",
                         "SourceSecurityGroupId": {
-                            "Fn::GetAtt": [
-                                "NGINXPlusELBSecurityGroup",
-                                "GroupId"
-                            ]
+                            "Ref": "NGINXPlusELBSecurityGroup"
                         }
                     }
                 ]
@@ -343,16 +340,32 @@
                         "IpProtocol": "tcp",
                         "FromPort": "8100",
                         "ToPort": "8100",
-                        "CidrIp": {
-                            "Ref": "VPCCIDR"
+                        "SourceSecurityGroupId": {
+                            "Ref": "BastionSecurityGroupID"
                         }
                     },
                     {
                         "IpProtocol": "tcp",
                         "FromPort": "8200",
                         "ToPort": "8200",
-                        "CidrIp": {
-                            "Ref": "VPCCIDR"
+                        "SourceSecurityGroupId": {
+                            "Ref": "BastionSecurityGroupID"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "8100",
+                        "ToPort": "8100",
+                        "SourceSecurityGroupId": {
+                            "Ref": "NGINXPlusInstancesSecurityGroup"
+                        }
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "8200",
+                        "ToPort": "8200",
+                        "SourceSecurityGroupId": {
+                            "Ref": "NGINXPlusInstancesSecurityGroup"
                         }
                     }
                 ],
