@@ -24,7 +24,7 @@
                     },
                     "Parameters": [
                         "KeyPairName",
-                        "BastionHostInstanceType"
+                        "BastionInstanceType"
                     ]
                 },
                 {
@@ -125,7 +125,7 @@
             "Description": "List of Availability Zones to use for the subnets in the VPC. Note: The logical order is preserved and only 2 AZs are used for this deployment.",
             "Type": "List<AWS::EC2::AvailabilityZone::Name>"
         },
-        "BastionHostInstanceType": {
+        "BastionInstanceType": {
             "Description": "Amazon EC2 instance type for the Bastion Host.",
             "Type": "String",
             "Default": "t2.micro",
@@ -312,8 +312,8 @@
             "Properties": {
                 "Parameters": {
                     "BastionAMIOS": "Amazon-Linux-HVM",
-                    "BastionHostInstanceType": {
-                        "Ref": "BastionHostInstanceType"
+                    "BastionInstanceType": {
+                        "Ref": "BastionInstanceType"
                     },
                     "KeyPairName": {
                         "Ref": "KeyPairName"
