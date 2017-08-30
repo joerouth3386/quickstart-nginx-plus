@@ -847,13 +847,13 @@
                     "install_nginx_asg_sync": {
                         "commands": {
                             "01-download": {
-                                "command": "wget https://github.com/nginxinc/nginx-asg-sync/releases/download/v0.1-1/nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+                                "command": "wget https://github.com/nginxinc/nginx-asg-sync/releases/download/v0.1-2/nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
                             },
                             "02-install": {
-                                "command": "rpm -i nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+                                "command": "rpm -i nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
                             },
                             "03-remove": {
-                                "command": "rm nginx-asg-sync-0.1-1.amzn1.x86_64.rpm"
+                                "command": "rm nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
                             }
                         }
                     },
