@@ -1,4 +1,4 @@
-#quickstart-nginx-plus
+# quickstart-nginx-plus
 ## NGINX Plus on the AWS Cloud
 
 This Quick Start sets up a highly available, secure AWS environment, and launches NGINX Plus automatically into an AWS configuration of your choice.
@@ -12,4 +12,4 @@ The AWS CloudFormation template included with the Quick Start automatically depl
 For architectural details, best practices, step-by-step instructions, and customization options, see the [deployment guide](https://s3.amazonaws.com/quickstart-reference/nginx/plus/latest/doc/nginx-plus-on-the-aws-cloud.pdf).
 
 To post feedback, submit feature ideas, or report bugs, use the **Issues** section of this GitHub repo.
-If you'd like to submit code for this Quick Start, please review the [AWS Quick Start Contributor's Kit](https://aws-quickstart.github.io/). 
+If you'd like to submit code for this Quick Start, please review the [AWS Quick Start Contributor's Kit](https://aws-quickstart.github.io/).
