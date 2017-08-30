@@ -5,7 +5,7 @@ This Quick Start sets up a highly available, secure AWS environment, and launche
 
 NGINX Plus is an application delivery platform built on NGINX, an open-source web server and reverse proxy for high-traffic sites. NGINX Plus adds technical support and enterprise-ready features for advanced load balancing, web and mobile acceleration, application security, monitoring, and management
 
-The AWS CloudFormation template included with the Quick Start automatically deploy NGINX Plus into a new virtual private cloud (VPC) in your AWS account. You can also use the AWS CloudFormation template as a starting point for your own implementation.
+The AWS CloudFormation template included with the Quick Start automatically deploys NGINX Plus into a new virtual private cloud (VPC) in your AWS account. You can also use the AWS CloudFormation template as a starting point for your own implementation.
 
 ![Quick Start architecture for NGINX Plus on AWS](https://d0.awsstatic.com/partner-network/QuickStart/datasheets/nginx-plus-architecture.jpg)
 
