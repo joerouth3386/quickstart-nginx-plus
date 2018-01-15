@@ -1,27 +1,31 @@
 [
     {
         "ParameterKey": "AvailabilityZones",
-        "ParameterValue": "$[alfred_genaz_2]"
+        "ParameterValue": "$[alfred_getaz_2]"
     },
     {
-        "ParameterKey": "BastionHostInstanceType",
+        "ParameterKey": "BastionInstanceType",
         "ParameterValue": "t2.micro"
-    },
-    {
-        "ParameterKey": "RemoteAccessCIDR",
-        "ParameterValue": "0.0.0.0/0"
     },
     {
         "ParameterKey": "KeyPairName",
-        "ParameterValue": "cikey"
+        "ParameterValue": "$[alfred_getkeypair]"
     },
     {
-        "ParameterKey": "NATInstanceType",
-        "ParameterValue": "t2.small"
-    },
-    {
-        "ParameterKey": "NGINXInstanceType",
+        "ParameterKey": "NGINXPlusInstanceType",
         "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "NGINXPlusNodesDesiredCapacity",
+        "ParameterValue": "2"
+    },
+    {
+        "ParameterKey": "NGINXPlusNodesMaxSize",
+        "ParameterValue": "5"
+    },
+    {
+        "ParameterKey": "NGINXPlusNodesMinSize",
+        "ParameterValue": "2"
     },
     {
         "ParameterKey": "PrivateSubnet1CIDR",
@@ -40,7 +44,27 @@
         "ParameterValue": "10.0.144.0/20"
     },
     {
+        "ParameterKey": "RemoteAccessCIDR",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
         "ParameterKey": "VPCCIDR",
         "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "WebAppInstanceType",
+        "ParameterValue": "t2.micro"
+    },
+    {
+        "ParameterKey": "WebAppNodesDesiredCapacity",
+        "ParameterValue": "2"
+    },
+    {
+        "ParameterKey": "WebAppNodesMaxSize",
+        "ParameterValue": "5"
+    },
+    {
+        "ParameterKey": "WebAppNodesMinSize",
+        "ParameterValue": "1"
     }
 ]
