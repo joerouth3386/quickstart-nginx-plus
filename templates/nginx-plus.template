@@ -250,7 +250,7 @@
             },
             "ap-southeast-1": {
                 "AMZNLINUXHVM": "ami-889cecf4",
-                "NGINXPLUSAMZNLINUXHVM": "ami-261e7449"
+                "NGINXPLUSAMZNLINUXHVM": "ami-8b7bafe8"
             },
             "ap-southeast-2": {
                 "AMZNLINUXHVM": "ami-ccab56ae",
@@ -271,6 +271,10 @@
             "eu-west-2": {
                 "AMZNLINUXHVM": "ami-51809835",
                 "NGINXPLUSAMZNLINUXHVM": "ami-b3c1cbd7"
+            },
+            "eu-west-3": {
+                "AMZNLINUXHVM": "ami-fe03b483",
+                "NGINXPLUSAMZNLINUXHVM": "ami-04d86f79"
             },
             "sa-east-1": {
                 "AMZNLINUXHVM": "ami-1226647e",
