@@ -851,13 +851,13 @@
                     "install_nginx_asg_sync": {
                         "commands": {
                             "01-download": {
-                                "command": "wget https://github.com/nginxinc/nginx-asg-sync/releases/download/v0.1-2/nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
+                                "command": "wget https://github.com/nginxinc/nginx-asg-sync/releases/download/v0.2-1/nginx-asg-sync-0.2-1.amzn1.x86_64.rpm"
                             },
                             "02-install": {
-                                "command": "rpm -i nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
+                                "command": "rpm -i nginx-asg-sync-0.2-1.amzn1.x86_64.rpm"
                             },
                             "03-remove": {
-                                "command": "rm nginx-asg-sync-0.1-2.amzn1.x86_64.rpm"
+                                "command": "rm nginx-asg-sync-0.2-1.amzn1.x86_64.rpm"
                             }
                         }
                     },
@@ -873,8 +873,7 @@
                                                 "Ref": "AWS::Region"
                                             },
                                             "\n",
-                                            "upstream_conf_endpoint: http://127.0.0.1:8080/upstream_conf\n",
-                                            "status_endpoint: http://127.0.0.1:8080/status\n",
+                                            "api_endpoint: http://127.0.0.1:8080/api\n",
                                             "sync_interval_in_seconds: 5\n",
                                             "upstreams:\n",
                                             "  - name: webapp1\n",
