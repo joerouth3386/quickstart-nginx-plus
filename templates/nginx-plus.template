@@ -247,63 +247,63 @@
             },
             "ap-northeast-1": {
                 "AMZNLINUXHVM": "ami-04b2d1589ab1d972c",
-                "NGINXPLUSAMZNLINUXHVM": "ami-2fbfd349"
+                "NGINXPLUSAMZNLINUXHVM": "ami-05a44dabe0fa56363"
             },
             "ap-northeast-2": {
                 "AMZNLINUXHVM": "ami-0be3e6f84d3b968cd",
-                "NGINXPLUSAMZNLINUXHVM": "ami-a865c6c6"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0d450501656d5b59c"
             },
             "ap-south-1": {
                 "AMZNLINUXHVM": "ami-0b99c7725b9484f9e",
-                "NGINXPLUSAMZNLINUXHVM": "ami-e3df8e8c"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0d2d8f20219baff05"
             },
             "ap-southeast-1": {
                 "AMZNLINUXHVM": "ami-0fb6b6f9e81056553",
-                "NGINXPLUSAMZNLINUXHVM": "ami-3268134e"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0cf8927728b1f729b"
             },
             "ap-southeast-2": {
                 "AMZNLINUXHVM": "ami-075caa3491def750b",
-                "NGINXPLUSAMZNLINUXHVM": "ami-5d56a83f"
+                "NGINXPLUSAMZNLINUXHVM": "ami-00ae64e8a212e720c"
             },
             "ca-central-1": {
                 "AMZNLINUXHVM": "ami-0a67d15f2858e33cb",
-                "NGINXPLUSAMZNLINUXHVM": "ami-572aaf33"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0092ebcc7a7ddb821"
             },
             "eu-central-1": {
                 "AMZNLINUXHVM": "ami-026d3b3672c6e7b66",
-                "NGINXPLUSAMZNLINUXHVM": "ami-e2e27a8d"
+                "NGINXPLUSAMZNLINUXHVM": "ami-03347806b1cf1ec17"
             },
             "eu-west-1": {
                 "AMZNLINUXHVM": "ami-0862aabda3fb488b5",
-                "NGINXPLUSAMZNLINUXHVM": "ami-02b4d27b"
+                "NGINXPLUSAMZNLINUXHVM": "ami-00508fed6014ad786"
             },
             "eu-west-2": {
                 "AMZNLINUXHVM": "ami-0bdfa1adc3878cd23",
-                "NGINXPLUSAMZNLINUXHVM": "ami-286e744c"
+                "NGINXPLUSAMZNLINUXHVM": "ami-00c73ec44aac5bf66"
             },
             "eu-west-3": {
                 "AMZNLINUXHVM": "ami-05b93cd5a1b552734",
-                "NGINXPLUSAMZNLINUXHVM": "ami-2bce7856"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0de259b96a17e22b4"
             },
             "sa-east-1": {
                 "AMZNLINUXHVM": "ami-0bb96001cf2299257",
-                "NGINXPLUSAMZNLINUXHVM": "ami-7a763a16"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0981c262cde8527b2"
             },
             "us-east-1": {
                 "AMZNLINUXHVM": "ami-035b3c7efe6d061d5",
-                "NGINXPLUSAMZNLINUXHVM": "ami-f4d2e08e"
+                "NGINXPLUSAMZNLINUXHVM": "ami-08bddf0e6fac2b710"
             },
             "us-east-2": {
                 "AMZNLINUXHVM": "ami-02f706d959cedf892",
-                "NGINXPLUSAMZNLINUXHVM": "ami-446e5b21"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0f7fd5ee46bc1bed9"
             },
             "us-west-1": {
                 "AMZNLINUXHVM": "ami-0fcdcdb074d2bac5f",
-                "NGINXPLUSAMZNLINUXHVM": "ami-0da2af6d"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0018cd470bea8c432"
             },
             "us-west-2": {
                 "AMZNLINUXHVM": "ami-0f2176987ee50226e",
-                "NGINXPLUSAMZNLINUXHVM": "ami-0406b97c"
+                "NGINXPLUSAMZNLINUXHVM": "ami-0e060efe4959226ef"
             }
         }
     },
