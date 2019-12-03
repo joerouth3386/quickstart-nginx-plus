@@ -53,7 +53,7 @@
     },
     {
         "ParameterKey": "WebAppInstanceType",
-        "ParameterValue": "t2.micro"
+        "ParameterValue": "t3.micro"
     },
     {
         "ParameterKey": "WebAppNodesDesiredCapacity",
