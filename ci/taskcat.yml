@@ -19,5 +19,5 @@ global:
   reporting: true
 tests:
   master:
-    parameter_input: nginx-plus-master.json
+    parameter_input: nginx-plus-defaults.json
     template_file: nginx-plus-master.template
