@@ -133,12 +133,12 @@
         "NGINXPlusInstanceType": {
             "Description": "Amazon EC2 instance type for the NGINX Plus load balancing instances",
             "Type": "String",
-            "Default": "t2.micro",
+            "Default": "t3.micro",
             "AllowedValues": [
-                "t2.micro",
-                "t2.small",
-                "t2.medium",
-                "t2.large"
+                "t3.micro",
+                "t3.small",
+                "t3.medium",
+                "t3.large"
             ]
         },
         "NGINXPlusNodesDesiredCapacity": {
