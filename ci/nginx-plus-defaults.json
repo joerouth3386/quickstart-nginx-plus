@@ -14,5 +14,9 @@
     {
         "ParameterKey": "NGINXPlusInstanceType",
         "ParameterValue": "t3.small"
+    },
+    {
+        "ParameterKey": "QSS3BucketName",
+        "ParameterValue": "$[taskcat_autobucket]"
     }
 ]
