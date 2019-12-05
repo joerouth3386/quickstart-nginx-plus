@@ -10,5 +10,9 @@
     {
         "ParameterKey": "KeyPairName",
         "ParameterValue": "cikey"
+    },
+    {
+        "ParameterKey": "NGINXPlusInstanceType",
+        "ParameterValue": "t3.small"
     }
 ]
