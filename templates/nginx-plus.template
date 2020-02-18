@@ -182,49 +182,49 @@ Mappings:
       AMZNLINUXHVM: amzn-ami-hvm-2018.03.0.20190611-x86_64-gp2
       NGINXPLUSAMZNLINUXHVM: nginx-plus-ami-amazon-linux-hvm-v1.2-20180118.x86_64-ebs-53d2479a-ccf6-4126-bd04-05e5c885727f-ami-b55f71cf.4
     ap-northeast-1:
-      AMZNLINUXHVM: ami-079e6fb1e856e80c1
+      AMZNLINUXHVM: ami-02ddf94e5edc8e904
       NGINXPLUSAMZNLINUXHVM: ami-05a44dabe0fa56363
     ap-northeast-2:
-      AMZNLINUXHVM: ami-0e4a253fb5f082688
+      AMZNLINUXHVM: ami-0ecd78c22823e02ef
       NGINXPLUSAMZNLINUXHVM: ami-0d450501656d5b59c
     ap-south-1:
-      AMZNLINUXHVM: ami-01e074f40dfb9999d
+      AMZNLINUXHVM: ami-05695932c5299858a
       NGINXPLUSAMZNLINUXHVM: ami-0d2d8f20219baff05
     ap-southeast-1:
-      AMZNLINUXHVM: ami-0d9233e8ce73df7b2
+      AMZNLINUXHVM: ami-043afc2b8b6cfba5c
       NGINXPLUSAMZNLINUXHVM: ami-0cf8927728b1f729b
     ap-southeast-2:
-      AMZNLINUXHVM: ami-0c91f97cadcc8499e
+      AMZNLINUXHVM: ami-01393ce9a3ca55d67
       NGINXPLUSAMZNLINUXHVM: ami-00ae64e8a212e720c
     ca-central-1:
-      AMZNLINUXHVM: ami-003a0ba7ea76b2785
+      AMZNLINUXHVM: ami-0fa94ecf2fef3420b
       NGINXPLUSAMZNLINUXHVM: ami-0092ebcc7a7ddb821
     eu-central-1:
-      AMZNLINUXHVM: ami-0ab838eeee7f316eb
+      AMZNLINUXHVM: ami-0ba441bdd9e494102
       NGINXPLUSAMZNLINUXHVM: ami-03347806b1cf1ec17
     eu-west-1:
-      AMZNLINUXHVM: ami-071f4ce599deff521
+      AMZNLINUXHVM: ami-0e61341fa75fcaa18
       NGINXPLUSAMZNLINUXHVM: ami-00508fed6014ad786
     eu-west-2:
-      AMZNLINUXHVM: ami-0e49551fc78560451
+      AMZNLINUXHVM: ami-050b8344d77081f4b
       NGINXPLUSAMZNLINUXHVM: ami-00c73ec44aac5bf66
     eu-west-3:
-      AMZNLINUXHVM: ami-0ec1d48c59dda554a
+      AMZNLINUXHVM: ami-053418e626d0549fc
       NGINXPLUSAMZNLINUXHVM: ami-0de259b96a17e22b4
     sa-east-1:
-      AMZNLINUXHVM: ami-04b202bf877b5027b
+      AMZNLINUXHVM: ami-05b7dbc290217250d
       NGINXPLUSAMZNLINUXHVM: ami-0981c262cde8527b2
     us-east-1:
-      AMZNLINUXHVM: ami-09d069a04349dc3cb
+      AMZNLINUXHVM: ami-0e2ff28bfb72a4e45
       NGINXPLUSAMZNLINUXHVM: ami-08bddf0e6fac2b710
     us-east-2:
-      AMZNLINUXHVM: ami-0d542ef84ec55d71c
+      AMZNLINUXHVM: ami-0998bf58313ab53da
       NGINXPLUSAMZNLINUXHVM: ami-0f7fd5ee46bc1bed9
     us-west-1:
-      AMZNLINUXHVM: ami-04bc3da8f14823e88
+      AMZNLINUXHVM: ami-021bb9f371690f97a
       NGINXPLUSAMZNLINUXHVM: ami-0018cd470bea8c432
     us-west-2:
-      AMZNLINUXHVM: ami-01460aa81365561fe
+      AMZNLINUXHVM: ami-079f731edfe27c29c
       NGINXPLUSAMZNLINUXHVM: ami-0e060efe4959226ef
 Conditions:
   GovCloudCondition: !Equals
